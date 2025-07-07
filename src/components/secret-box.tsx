@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -18,11 +19,11 @@ export function SecretBox() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [firebaseError, setFirebaseError] = useState(false);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!auth || !db) {
-      setFirebaseError(true);
+      setFirebaseError("Could not initialize Firebase. Please ensure your `.env.local` file is set up with valid credentials.");
       setLoading(false);
       return;
     }
@@ -33,9 +34,13 @@ export function SecretBox() {
       } else {
         try {
           await signInAnonymously(auth);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Anonymous sign-in failed:", error);
-          setFirebaseError(true);
+          if (error.code === 'auth/configuration-not-found') {
+            setFirebaseError('Anonymous sign-in is not enabled. Please go to your Firebase console, navigate to Authentication > Sign-in method, and enable the Anonymous provider.');
+          } else {
+            setFirebaseError(`An error occurred during authentication: ${error.message}. Please check your Firebase setup and the browser console.`);
+          }
           setLoading(false);
         }
       }
@@ -62,7 +67,7 @@ export function SecretBox() {
       setLoading(false);
     }, (error) => {
       console.error("Error fetching questions:", error);
-      setFirebaseError(true);
+      setFirebaseError(`Error fetching data: ${error.message}`);
       setLoading(false);
     });
 
@@ -132,7 +137,7 @@ export function SecretBox() {
           <Terminal className="h-4 w-4" />
           <AlertTitle>Firebase Configuration Error</AlertTitle>
           <AlertDescription>
-            Could not connect to Firebase. Please ensure your <code>.env.local</code> file is set up with valid credentials.
+            {firebaseError}
           </AlertDescription>
         </Alert>
       </div>
