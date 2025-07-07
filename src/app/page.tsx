@@ -1,266 +1,61 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { db, auth } from '../lib/firebase';
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  doc,
-  updateDoc,
-  query,
-  orderBy,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { Send, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
 
-type Question = {
-  id: string;
-  question: string;
-  answer: string;
-  isAnswered: boolean;
-  sender: 'cipa' | 'jojo';
-  recipient: 'cipa' | 'jojo';
-  createdAt: any;
-};
-
-type AnswerInputs = {
-  [key: string]: string;
-};
-
-export default function Home() {
-  const [currentUser, setCurrentUser] = useState<'cipa' | 'jojo'>('cipa');
-  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
-  const [questionInput, setQuestionInput] = useState('');
-  const [answerInputs, setAnswerInputs] = useState<AnswerInputs>({});
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        signInAnonymously(auth).catch((error) => {
-          console.error('Anonymous sign-in failed:', error);
-        });
-      }
-    });
-    return () => unsubscribeAuth();
-  }, []);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const questionsCollectionRef = collection(db, 'secret_box');
-    const q = query(questionsCollectionRef, orderBy('createdAt', 'desc'));
-
-    const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-      const fetchedQuestions = snapshot.docs.map(
-        (doc) => ({ id: doc.id, ...doc.data() } as Question)
-      );
-      setAllQuestions(fetchedQuestions);
-    });
-
-    return () => unsubscribeSnapshot();
-  }, [isAuthenticated]);
-
-  const handleAnswerInputChange = (id: string, value: string) => {
-    setAnswerInputs((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const addQuestion = async () => {
-    if (!questionInput.trim()) {
-      alert('Pertanyaannya jangan kosong dong!');
-      return;
-    }
-    const questionsCollectionRef = collection(db, 'secret_box');
-    await addDoc(questionsCollectionRef, {
-      question: questionInput,
-      answer: '',
-      isAnswered: false,
-      sender: currentUser,
-      recipient: currentUser === 'cipa' ? 'jojo' : 'cipa',
-      createdAt: serverTimestamp(),
-    });
-    setQuestionInput('');
-    alert('Pertanyaan rahasia terkirim!');
-  };
-
-  const answerQuestion = async (id: string) => {
-    const answerText = answerInputs[id]?.trim();
-    if (!answerText) {
-      alert('Jawabannya jangan kosong dong!');
-      return;
-    }
-    const docRef = doc(db, 'secret_box', id);
-    await updateDoc(docRef, {
-      answer: answerText,
-      isAnswered: true,
-    });
-    // Clear the input for this card after submitting
-    handleAnswerInputChange(id, '');
-  };
-
-  const unansweredForMe = allQuestions.filter(
-    (q) => q.recipient === currentUser && !q.isAnswered
-  );
-  const answeredConvos = allQuestions.filter((q) => q.isAnswered);
-
+// A skeleton loader that mimics the app's layout for a better UX.
+function AppSkeleton() {
   return (
-    <div className="container mx-auto max-w-2xl p-4 md:p-8">
+    <div className="container mx-auto max-w-2xl p-4 md:p-8 animate-pulse">
       <header className="text-center mb-8">
-        <h1 className="font-handwriting text-5xl md:text-6xl text-pink-500">
-          Kotak Rahasia
-        </h1>
-        <p className="text-gray-500 mt-2">Untuk Cipa & Jojo ♥</p>
+        <Skeleton className="h-14 w-64 mx-auto" />
+        <Skeleton className="h-4 w-48 mx-auto mt-4" />
       </header>
 
       <div className="flex justify-center mb-8 bg-white p-1.5 rounded-full shadow-inner">
-        <button
-          onClick={() => setCurrentUser('cipa')}
-          className={cn(
-            'user-toggle w-1/2 py-2 rounded-full font-semibold',
-            { active: currentUser === 'cipa' }
-          )}
-        >
-          Aku Cipa
-        </button>
-        <button
-          onClick={() => setCurrentUser('jojo')}
-          className={cn(
-            'user-toggle w-1/2 py-2 rounded-full font-semibold',
-            { active: currentUser === 'jojo' }
-          )}
-        >
-          Aku Jojo
-        </button>
+        <Skeleton className="h-10 w-1/2 rounded-full bg-pink-100" />
+        <Skeleton className="h-10 w-1/2 rounded-full bg-white ml-1.5" />
       </div>
 
-      <div id="main-view">
+      <div className="space-y-10">
         <section id="ask-form-section" className="mb-10">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Tanya Sesuatu ke{' '}
-            <span className="text-pink-500">
-              {currentUser === 'cipa' ? 'Jojo' : 'Cipa'}
-            </span>
-            ...
-          </h2>
-          <div className="bg-white p-6 rounded-2xl shadow-md">
-            <Textarea
-              value={questionInput}
-              onChange={(e) => setQuestionInput(e.target.value)}
-              rows={4}
-              placeholder="Ketik pertanyaan rahasiamu di sini..."
-              className="focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition"
-            />
-            <Button
-              onClick={addQuestion}
-              className="btn w-full mt-4 bg-pink-500 text-white font-bold py-3 text-base hover:bg-pink-600"
-            >
-              Kirim Pertanyaan Rahasia
-              <Send className="ml-2 h-4 w-4" />
-            </Button>
+          <Skeleton className="h-8 w-80 mx-auto mb-4" />
+          <div className="bg-white p-6 rounded-2xl shadow-md space-y-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-12 w-full" />
           </div>
         </section>
 
         <section id="unanswered-section" className="mb-10">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            💌 Pertanyaan Untukmu
-          </h2>
-          <div className="space-y-4">
-            {unansweredForMe.length === 0 ? (
-              <div className="text-center text-gray-500 p-8 bg-gray-50 rounded-lg">
-                Aman, nggak ada pertanyaan baru buatmu!
-              </div>
-            ) : (
-              unansweredForMe.map((q) => (
-                <div key={q.id} className="card-enter bg-white p-5 rounded-xl shadow-md">
-                  <div>
-                    <p className="text-gray-500 text-sm">
-                      Pertanyaan dari{' '}
-                      <span className="font-bold">
-                        {q.sender === 'cipa' ? 'Cipa' : 'Jojo'}
-                      </span>
-                      ...
-                    </p>
-                    <p className="text-lg font-bold text-gray-800">
-                      {q.question}
-                    </p>
-                  </div>
-                  <div className="mt-4">
-                    <Textarea
-                      value={answerInputs[q.id] || ''}
-                      onChange={(e) => handleAnswerInputChange(q.id, e.target.value)}
-                      placeholder="Tulis jawabanmu di sini..."
-                      className="focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition"
-                    />
-                    <Button
-                      onClick={() => answerQuestion(q.id)}
-                      className="btn w-full mt-2 bg-green-500 text-white font-bold py-2 text-base hover:bg-green-600"
-                    >
-                      Jawab
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
+          <Skeleton className="h-8 w-64 mx-auto mb-4" />
+          <div className="bg-white p-5 rounded-xl shadow-md space-y-4">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-20 w-full mt-2" />
+            <Skeleton className="h-10 w-full mt-2" />
           </div>
         </section>
 
         <section id="answered-section">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            💬 Obrolan Kita
-          </h2>
-          <div className="space-y-4">
-            {answeredConvos.length === 0 ? (
-              <div className="text-center text-gray-500 p-8 bg-gray-50 rounded-lg">
-                Belum ada obrolan yang selesai.
-              </div>
-            ) : (
-              answeredConvos.map((q) => (
-                <div key={q.id} className="card-enter bg-white p-5 rounded-xl shadow-md">
-                  <div className="border-b pb-3 mb-3">
-                    <p className="text-gray-500 text-sm">
-                      Pertanyaan dari{' '}
-                      <span className="font-bold">
-                        {q.sender === 'cipa' ? 'Cipa' : 'Jojo'}
-                      </span>
-                      :
-                    </p>
-                    <p className="text-lg text-gray-700">{q.question}</p>
-                  </div>
-                  <div>
-                    <p className="text-pink-500 font-semibold text-sm">
-                      Jawaban dari{' '}
-                      <span className="font-bold">
-                        {q.recipient === 'cipa' ? 'Cipa' : 'Jojo'}
-                      </span>
-                      :
-                    </p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {q.answer}
-                    </p>
-                  </div>
-                  <div className="text-right text-xs text-green-500 mt-2 flex items-center justify-end">
-                    <CheckCircle className="mr-1 h-3 w-3" /> Sudah Dijawab
-                  </div>
-                </div>
-              ))
-            )}
+          <Skeleton className="h-8 w-48 mx-auto mb-4" />
+          <div className="bg-white p-5 rounded-xl shadow-md space-y-3">
+             <Skeleton className="h-4 w-1/3" />
+             <Skeleton className="h-5 w-2/3" />
+             <div className="border-b my-3"></div>
+             <Skeleton className="h-4 w-1/3" />
+             <Skeleton className="h-5 w-3/4" />
           </div>
         </section>
       </div>
-
-      <footer className="text-center mt-12 border-t pt-4">
-        <Link href="/game-kartu" className="text-pink-500 hover:underline">
-          Lihat Project Lain: Game Kartu
-        </Link>
-      </footer>
     </div>
   );
+}
+
+const SecretBox = dynamic(() => import('@/components/SecretBox'), {
+  ssr: false,
+  loading: () => <AppSkeleton />,
+});
+
+export default function Home() {
+  return <SecretBox />;
 }
