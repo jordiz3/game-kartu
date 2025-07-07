@@ -5,6 +5,7 @@
 runtime: nodejs20
 
 # Specifies the commands to build and start the application.
+# These commands are crucial for a Next.js app to run correctly.
 build: npm run build
 start: npm run start
 
