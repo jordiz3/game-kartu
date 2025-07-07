@@ -9,16 +9,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Send, CheckCircle2 } from 'lucide-react';
+import { Send, CheckCircle2, Terminal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function SecretBox() {
   const [currentUser, setCurrentUser] = useState<User>('cipa');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [firebaseError, setFirebaseError] = useState(false);
 
   useEffect(() => {
+    if (!auth || !db) {
+      setFirebaseError(true);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsAuthenticated(true);
@@ -27,6 +35,8 @@ export function SecretBox() {
           await signInAnonymously(auth);
         } catch (error) {
           console.error("Anonymous sign-in failed:", error);
+          setFirebaseError(true);
+          setLoading(false);
         }
       }
     });
@@ -34,7 +44,11 @@ export function SecretBox() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !db) {
+      // Wait for authentication or for a firebase error.
+      // If we are authenticated, loading will be set to false inside onSnapshot.
+      return;
+    }
 
     const questionsCollectionRef = collection(db, 'secret_box');
     const q = query(questionsCollectionRef, orderBy('createdAt', 'desc'));
@@ -48,6 +62,7 @@ export function SecretBox() {
       setLoading(false);
     }, (error) => {
       console.error("Error fetching questions:", error);
+      setFirebaseError(true);
       setLoading(false);
     });
 
@@ -67,6 +82,7 @@ export function SecretBox() {
   );
 
   const handleSendQuestion = async (questionText: string) => {
+    if (!db) return;
     if (!questionText.trim()) {
       alert('Pertanyaannya jangan kosong dong!');
       return;
@@ -88,6 +104,7 @@ export function SecretBox() {
   };
 
   const handleAnswerQuestion = async (id: string, answerText: string) => {
+    if (!db) return;
     if (!answerText.trim()) {
       alert('Jawabannya jangan kosong dong!');
       return;
@@ -103,6 +120,24 @@ export function SecretBox() {
       alert('Gagal menyimpan jawaban. Coba lagi.');
     }
   };
+
+  if (firebaseError) {
+    return (
+      <div className="container mx-auto max-w-2xl p-4 md:p-8">
+        <header className="text-center mb-8">
+          <h1 className="font-headline text-5xl md:text-6xl text-primary">Kotak Rahasia</h1>
+          <p className="text-gray-500 mt-2">Untuk Cipa & Jojo ♥</p>
+        </header>
+        <Alert variant="destructive">
+          <Terminal className="h-4 w-4" />
+          <AlertTitle>Firebase Configuration Error</AlertTitle>
+          <AlertDescription>
+            Could not connect to Firebase. Please ensure your <code>.env.local</code> file is set up with valid credentials.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-2xl p-4 md:p-8">
