@@ -1,36 +1,65 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Swords } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { PenSquare, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 font-pixel">
-      <header className="text-center mb-8">
-        <h1 className="text-5xl md:text-6xl text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
-          Game Kartu
-        </h1>
-        <p className="text-gray-400 mt-2">Selamat Datang di Arena Pertarungan!</p>
-      </header>
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <header className="text-center mb-8">
+          <h1 className="text-5xl font-bold text-primary flex items-center justify-center gap-3">
+            <PenSquare className="w-12 h-12" />
+            Secret Scribbles
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Your AI-powered creative writing partner.
+          </p>
+        </header>
 
-      <main className="w-full max-w-4xl">
-        <Card className="bg-gray-800/50 border-2 border-yellow-500 shadow-lg shadow-yellow-500/10">
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center justify-center h-64 border-4 border-dashed border-gray-600 rounded-lg">
-              <p className="text-gray-500 text-2xl mb-4">Arena Permainan</p>
-              <Swords className="h-16 w-16 text-gray-500" />
-            </div>
-          </CardContent>
-        </Card>
+        <main>
+          <Card className="w-full shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="text-primary" />
+                Start a new story
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="space-y-4">
+                <div>
+                  <label htmlFor="topic" className="block text-sm font-medium mb-1">
+                    What should we write about?
+                  </label>
+                  <Input 
+                    id="topic" 
+                    placeholder="e.g., A lost astronaut on a neon planet" 
+                    className="bg-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="preview" className="block text-sm font-medium mb-1">
+                    Generated story preview
+                  </label>
+                  <Textarea
+                    id="preview"
+                    readOnly
+                    placeholder="Your story will appear here..."
+                    className="bg-muted h-48 resize-none"
+                  />
+                </div>
+                <Button type="submit" className="w-full text-lg py-6 font-semibold">
+                  Generate Story
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
 
-        <div className="mt-8 flex justify-center">
-          <Button size="lg" className="bg-yellow-500 text-gray-900 font-bold hover:bg-yellow-400 text-xl px-10 py-6 rounded-lg shadow-lg hover:shadow-yellow-400/20 transition-all duration-300 transform hover:-translate-y-1">
-            Mulai Permainan Baru
-          </Button>
-        </div>
-      </main>
-
-      <footer className="mt-12 text-center text-gray-500 text-sm">
-        <p>Dibuat dengan Next.js & Tailwind CSS</p>
+      <footer className="mt-12 text-center text-muted-foreground text-sm">
+        <p>Built with Next.js, Genkit, and ShadCN UI</p>
       </footer>
     </div>
   );
