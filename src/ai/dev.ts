@@ -1,1 +1,2 @@
-// Flows will be imported for their side effects in this file.
+// This file is not used in the "Kotak Rahasia" app.
+// It can be removed or kept for future Genkit features.

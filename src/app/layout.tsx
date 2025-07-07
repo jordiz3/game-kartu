@@ -1,9 +1,23 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
+import { Poppins, Caveat } from 'next/font/google';
 import './globals.css';
+import { cn } from '@/lib/utils';
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
+});
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-caveat',
+});
 
 export const metadata: Metadata = {
-  title: 'Secret Scribbles',
-  description: 'Your AI-powered creative writing partner.',
+  title: 'Kotak Rahasia - Cipa & Jojo',
+  description: 'Sebuah kotak rahasia untuk Cipa & Jojo',
 };
 
 export default function RootLayout({
@@ -12,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="antialiased">
+    <html lang="id">
+      <body className={cn('antialiased', poppins.variable, caveat.variable)}>
         {children}
       </body>
     </html>
