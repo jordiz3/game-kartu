@@ -17,6 +17,7 @@ import { Send, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 type Question = {
   id: string;
@@ -254,6 +255,12 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      <footer className="text-center mt-12 border-t pt-4">
+        <Link href="/game-kartu" className="text-pink-500 hover:underline">
+          Lihat Project Lain: Game Kartu
+        </Link>
+      </footer>
     </div>
   );
 }
