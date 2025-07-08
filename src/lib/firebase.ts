@@ -1,22 +1,12 @@
-import { initializeApp, getApp, getApps } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
 import { firebaseConfig } from "./firebaseConfig";
 
-// Initialize Firebase
-let app;
-if (!getApps().length) {
-    try {
-        app = initializeApp(firebaseConfig);
-    } catch (e) {
-        console.error("Firebase initialization error", e);
-    }
-} else {
-    app = getApp();
-}
+// Initialize Firebase in a robust way
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-
-const db = getFirestore(app);
-const auth = getAuth(app);
+const db: Firestore = getFirestore(app);
+const auth: Auth = getAuth(app);
 
 export { app, db, auth };

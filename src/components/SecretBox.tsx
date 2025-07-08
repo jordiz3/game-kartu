@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useToast } from "@/hooks/use-toast"
 
 type Question = {
   id: string;
@@ -39,6 +40,7 @@ export default function SecretBox() {
   const [questionInput, setQuestionInput] = useState('');
   const [answerInputs, setAnswerInputs] = useState<AnswerInputs>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -47,11 +49,16 @@ export default function SecretBox() {
       } else {
         signInAnonymously(auth).catch((error) => {
           console.error('Anonymous sign-in failed:', error);
+          toast({
+            variant: "destructive",
+            title: "Gagal Autentikasi",
+            description: "Tidak bisa masuk sebagai pengguna anonim. Coba refresh halaman.",
+          })
         });
       }
     });
     return () => unsubscribeAuth();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -64,10 +71,17 @@ export default function SecretBox() {
         (doc) => ({ id: doc.id, ...doc.data() } as Question)
       );
       setAllQuestions(fetchedQuestions);
+    }, (error) => {
+        console.error("Snapshot error: ", error);
+        toast({
+            variant: "destructive",
+            title: "Gagal memuat data",
+            description: "Tidak bisa mengambil data pertanyaan dari server.",
+        });
     });
 
     return () => unsubscribeSnapshot();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, toast]);
 
   const handleAnswerInputChange = (id: string, value: string) => {
     setAnswerInputs((prev) => ({ ...prev, [id]: value }));
@@ -75,35 +89,67 @@ export default function SecretBox() {
 
   const addQuestion = async () => {
     if (!questionInput.trim()) {
-      alert('Pertanyaannya jangan kosong dong!');
+      toast({
+        title: 'Jangan Kosong Dong!',
+        description: 'Pertanyaannya tidak boleh kosong ya.',
+        variant: 'destructive',
+      });
       return;
     }
-    const questionsCollectionRef = collection(db, 'secret_box');
-    await addDoc(questionsCollectionRef, {
-      question: questionInput,
-      answer: '',
-      isAnswered: false,
-      sender: currentUser,
-      recipient: currentUser === 'cipa' ? 'jojo' : 'cipa',
-      createdAt: serverTimestamp(),
-    });
-    setQuestionInput('');
-    alert('Pertanyaan rahasia terkirim!');
+    try {
+      const questionsCollectionRef = collection(db, 'secret_box');
+      await addDoc(questionsCollectionRef, {
+        question: questionInput,
+        answer: '',
+        isAnswered: false,
+        sender: currentUser,
+        recipient: currentUser === 'cipa' ? 'jojo' : 'cipa',
+        createdAt: serverTimestamp(),
+      });
+      setQuestionInput('');
+      toast({
+        title: 'Terkirim!',
+        description: 'Pertanyaan rahasiamu berhasil dikirim.',
+      });
+    } catch (error) {
+      console.error("Error adding question: ", error);
+      toast({
+        variant: "destructive",
+        title: "Gagal Mengirim",
+        description: "Tidak dapat mengirim pertanyaan. Mungkin ada masalah dengan koneksi atau izin.",
+      })
+    }
   };
 
   const answerQuestion = async (id: string) => {
     const answerText = answerInputs[id]?.trim();
     if (!answerText) {
-      alert('Jawabannya jangan kosong dong!');
+      toast({
+        title: 'Jangan Kosong Dong!',
+        description: 'Jawabannya tidak boleh kosong ya.',
+        variant: 'destructive',
+      });
       return;
     }
-    const docRef = doc(db, 'secret_box', id);
-    await updateDoc(docRef, {
-      answer: answerText,
-      isAnswered: true,
-    });
-    // Clear the input for this card after submitting
-    handleAnswerInputChange(id, '');
+    try {
+      const docRef = doc(db, 'secret_box', id);
+      await updateDoc(docRef, {
+        answer: answerText,
+        isAnswered: true,
+      });
+      handleAnswerInputChange(id, '');
+       toast({
+        title: 'Berhasil Dijawab!',
+        description: 'Jawabanmu telah disimpan.',
+      });
+    } catch (error) {
+       console.error("Error answering question: ", error);
+       toast({
+        variant: "destructive",
+        title: "Gagal Menjawab",
+        description: "Tidak dapat menyimpan jawaban. Mungkin ada masalah dengan koneksi atau izin.",
+      })
+    }
   };
 
   const unansweredForMe = allQuestions.filter(

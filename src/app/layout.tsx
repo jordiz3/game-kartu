@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Poppins, Caveat } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
+import { Toaster } from "@/components/ui/toaster"
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="id">
       <body className={cn('antialiased', poppins.variable, caveat.variable)}>
         {children}
+        <Toaster />
       </body>
     </html>
   );
