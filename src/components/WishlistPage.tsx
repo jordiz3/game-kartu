@@ -158,12 +158,11 @@ export default function WishlistPage() {
   
   const handleToggleComplete = async (item: WishlistItem) => {
     const docRef = doc(db, 'wishlist_dates', item.id);
-    const newStatus = !item.isCompleted;
-    let newRatings = item.ratings || [];
-    if (newStatus && newRatings.length === 0) {
-      newRatings.push({ name: 'Overall Experience', rating: 0 });
-    }
-    await updateDoc(docRef, { isCompleted: newStatus, ratings: newRatings });
+    await updateDoc(docRef, { isCompleted: !item.isCompleted });
+    toast({
+        title: item.isCompleted ? 'Dikembalikan ke wishlist.' : 'Selamat, date kelakon!',
+        description: item.isCompleted ? 'Siap untuk direcanakan lagi!' : 'Jangan lupa kasih rating & foto ya.',
+      });
   };
   
   const handleDeleteItem = async (id: string) => {
@@ -216,7 +215,7 @@ export default function WishlistPage() {
     }
 
     try {
-        const imageRef = storageRef(storage, `wishlist_photos/${photoUploadId}/${Date.now()}-${fileName}`);
+        const imageRef = storageRef(storage, `wishlist_photos/${photoUploadId}/${Date.now()}-${fileName.replace(/\s/g, '_')}`);
         await uploadBytes(imageRef, fileToUpload);
         const downloadURL = await getDownloadURL(imageRef);
 
@@ -242,6 +241,33 @@ export default function WishlistPage() {
     const newRatings = item.ratings.map(r => r.name === ratingName ? {...r, rating: newRating} : r);
     await updateDoc(doc(db, 'wishlist_dates', id), { ratings: newRatings });
   }
+
+  const handleAddRatingItem = async (id: string, name: string) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      toast({ variant: 'destructive', title: 'Nama rating tidak boleh kosong.' });
+      return;
+    }
+
+    const item = wishlist.find(i => i.id === id);
+    if (!item) return;
+
+    const existingRatings = item.ratings || [];
+    if (existingRatings.some(r => r.name.toLowerCase() === trimmedName.toLowerCase())) {
+      toast({ variant: 'destructive', title: 'Kategori rating tersebut sudah ada.' });
+      return;
+    }
+
+    const newRatings = [...existingRatings, { name: trimmedName, rating: 0 }];
+
+    try {
+      await updateDoc(doc(db, 'wishlist_dates', id), { ratings: newRatings });
+      toast({ title: 'Kategori rating berhasil ditambahkan!' });
+    } catch (error) {
+      console.error('Error adding rating item:', error);
+      toast({ variant: 'destructive', title: 'Gagal menambahkan kategori rating.' });
+    }
+  };
 
   const filteredWishlist = wishlist.filter(item => {
     const tabMatch = currentTab === 'impian' ? !item.isCompleted : item.isCompleted;
@@ -327,7 +353,8 @@ export default function WishlistPage() {
                         onToggleComplete={() => handleToggleComplete(item)}
                         onDelete={() => handleDeleteItem(item.id)}
                         onUploadPhotoClick={() => { setPhotoUploadId(item.id); photoUploadRef.current?.click() }}
-                        onUpdateRating={(name, rating) => handleUpdateRating(item.id, name, rating)}
+                        onUpdateRating={handleUpdateRating}
+                        onAddRatingItem={handleAddRatingItem}
                     />
                 ))
             )}
@@ -345,12 +372,20 @@ export default function WishlistPage() {
 }
 
 // Sub-component for displaying/editing a single wishlist item
-function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadPhotoClick, onUpdateRating }: any) {
+function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadPhotoClick, onUpdateRating, onAddRatingItem }: any) {
     const [editValues, setEditValues] = useState(item);
+    const [isAddingRating, setIsAddingRating] = useState(false);
+    const [newRatingName, setNewRatingName] = useState('');
 
     useEffect(() => {
         setEditValues(item);
     }, [item]);
+    
+    const handleSaveNewRating = () => {
+        onAddRatingItem(item.id, newRatingName);
+        setIsAddingRating(false);
+        setNewRatingName('');
+    }
 
     if (isEditing) {
         return (
@@ -436,21 +471,45 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
                     )}
                     <div className="space-y-2 mt-4">
                         <p className="text-sm font-semibold text-gray-600">Rating Pengalaman:</p>
-                        {(item.ratings || []).map(r => (
-                            <div key={r.name} className="flex justify-between items-center">
-                                <p className="text-sm">{r.name}</p>
-                                <div className="flex items-center gap-1">
-                                    {[1, 2, 3, 4, 5].map(star => (
-                                        <Star 
-                                            key={star}
-                                            size={18}
-                                            className={`cursor-pointer ${r.rating >= star ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`}
-                                            onClick={() => onUpdateRating(r.name, star)}
-                                        />
-                                    ))}
+                        {(item.ratings || []).length > 0 ? (
+                            (item.ratings || []).map(r => (
+                                <div key={r.name} className="flex justify-between items-center">
+                                    <p className="text-sm">{r.name}</p>
+                                    <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <Star 
+                                                key={star}
+                                                size={18}
+                                                className={`cursor-pointer ${r.rating >= star ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`}
+                                                onClick={() => onUpdateRating(item.id, r.name, star)}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
+                            ))
+                        ) : (
+                            !isAddingRating && <p className="text-xs text-gray-400 italic">Belum ada rating. Tambahkan satu!</p>
+                        )}
+                        
+                        {isAddingRating ? (
+                            <div className="flex items-center gap-2 pt-2">
+                                <Input 
+                                    value={newRatingName}
+                                    onChange={e => setNewRatingName(e.target.value)}
+                                    placeholder="e.g. Suasana, Makanan"
+                                    className="h-9"
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewRating() }}
+                                />
+                                <Button size="sm" onClick={handleSaveNewRating} className="bg-green-500 hover:bg-green-600">Simpan</Button>
+                                <Button size="sm" variant="ghost" onClick={() => setIsAddingRating(false)}>Batal</Button>
                             </div>
-                        ))}
+                        ) : (
+                            <div className="pt-1">
+                                 <Button variant="link" size="sm" className="p-0 h-auto text-pink-600 font-semibold" onClick={() => setIsAddingRating(true)}>
+                                    + Tambah Kategori Rating
+                                </Button>
+                            </div>
+                        )}
                     </div>
                  </div>
             )}
