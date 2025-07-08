@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { db, auth } from '@/lib/firebase';
+import { db, auth, storage } from '@/lib/firebase';
 import {
   collection,
   addDoc,
@@ -10,12 +10,11 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where,
-  getDocs,
-  serverTimestamp,
   orderBy,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Link from 'next/link';
 import Image from 'next/image';
 import heic2any from 'heic2any';
@@ -31,8 +30,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Plus,
   Heart,
@@ -73,14 +83,12 @@ export default function WishlistPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
 
-  // Form state
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [isHighPriority, setIsHighPriority] = useState(false);
 
-  // UI state
   const [currentTab, setCurrentTab] = useState('impian');
   const [filterCategory, setFilterCategory] = useState('Semua');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -159,43 +167,73 @@ export default function WishlistPage() {
   };
   
   const handleDeleteItem = async (id: string) => {
-     if (confirm('Yakin mau hapus wishlist ini?')) {
-        await deleteDoc(doc(db, 'wishlist_dates', id));
-     }
+    try {
+      await deleteDoc(doc(db, 'wishlist_dates', id));
+      toast({ title: 'Wishlist telah dihapus.'});
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast({ variant: 'destructive', title: 'Gagal menghapus wishlist.' });
+    }
   };
   
-  const handleSaveEdit = async (id: string, newValues: Partial<WishlistItem>) => {
-      const docRef = doc(db, 'wishlist_dates', id);
-      await updateDoc(docRef, newValues);
+  const handleSaveEdit = async (id: string, newValues: WishlistItem) => {
+    const docRef = doc(db, 'wishlist_dates', id);
+    const dataToUpdate = {
+      title: newValues.title,
+      location: newValues.location,
+      category: newValues.category,
+      description: newValues.description,
+      isHighPriority: newValues.isHighPriority,
+    };
+
+    try {
+      await updateDoc(docRef, dataToUpdate);
       setEditingItemId(null);
-  }
+      toast({ title: 'Wishlist berhasil diperbarui!' });
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      toast({ variant: 'destructive', title: 'Gagal menyimpan perubahan.' });
+    }
+  };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !photoUploadId) return;
+    const file = e.target.files?.[0];
+    if (!file || !photoUploadId) return;
 
-      toast({title: "Mengupload foto..."});
+    toast({ title: 'Mengupload foto...' });
 
-      let blobToConvert: Blob | string = file;
-      if (file.name.toLowerCase().match(/\.(heic|heif)$/)) {
+    let fileToUpload: Blob = file;
+    const fileName = file.name.toLowerCase();
+    if (fileName.match(/\.(heic|heif)$/)) {
         try {
-          blobToConvert = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+            const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+            fileToUpload = convertedBlob as Blob;
         } catch (error) {
-           toast({variant: "destructive", title: "Gagal konversi HEIC."});
-           return;
+            console.error('HEIC conversion failed:', error);
+            toast({ variant: 'destructive', title: 'Gagal konversi HEIC.' });
+            return;
         }
-      }
+    }
 
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-          const dataUrl = reader.result as string;
-          const docRef = doc(db, 'wishlist_dates', photoUploadId);
-          await updateDoc(docRef, { photoUrl: dataUrl });
-          toast({title: "Foto berhasil diupload!"});
-      }
-      reader.readAsDataURL(blobToConvert as Blob);
-      setPhotoUploadId(null);
-  }
+    try {
+        const imageRef = storageRef(storage, `wishlist_photos/${photoUploadId}/${Date.now()}-${fileName}`);
+        await uploadBytes(imageRef, fileToUpload);
+        const downloadURL = await getDownloadURL(imageRef);
+
+        const docRef = doc(db, 'wishlist_dates', photoUploadId);
+        await updateDoc(docRef, { photoUrl: downloadURL });
+
+        toast({ title: 'Foto berhasil diupload!' });
+    } catch (error) {
+        console.error('Error uploading photo:', error);
+        toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: 'Terjadi masalah saat mengunggah foto. Coba lagi.' });
+    } finally {
+        setPhotoUploadId(null);
+        if (photoUploadRef.current) {
+            photoUploadRef.current.value = '';
+        }
+    }
+  };
   
   const handleUpdateRating = async (id: string, ratingName: string, newRating: number) => {
     const item = wishlist.find(i => i.id === id);
@@ -322,12 +360,12 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
                     <Input value={editValues.location} onChange={e => setEditValues({...editValues, location: e.target.value})} className="text-sm" />
                     <Textarea value={editValues.description} onChange={e => setEditValues({...editValues, description: e.target.value})} rows={4} />
                     <Select value={editValues.category} onValueChange={val => setEditValues({...editValues, category: val})}>
-                        <SelectTrigger><SelectValue/></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Pilih Kategori..." /></SelectTrigger>
                         <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                     </Select>
                     <div className="flex items-center gap-2">
-                        <Checkbox checked={editValues.isHighPriority} onCheckedChange={c => setEditValues({...editValues, isHighPriority: Boolean(c)})} />
-                        <label className="text-gray-600 text-sm">Penting Banget</label>
+                        <Checkbox id={`edit-priority-${item.id}`} checked={editValues.isHighPriority} onCheckedChange={c => setEditValues({...editValues, isHighPriority: Boolean(c)})} />
+                        <label htmlFor={`edit-priority-${item.id}`} className="text-gray-600 text-sm">Penting Banget</label>
                     </div>
                     <div className="flex justify-end gap-2 mt-4">
                         <Button variant="ghost" onClick={onEditCancel}>Batal</Button>
@@ -356,7 +394,25 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-green-500" onClick={onToggleComplete}>
                         {item.isCompleted ? <Undo2 size={18}/> : <CheckCircle2 size={18} />}
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500" onClick={onDelete}><Trash2 size={18}/></Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500"><Trash2 size={18}/></Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Yakin mau hapus wishlist ini?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Aksi ini tidak bisa dibatalkan. Wishlist "{item.title}" akan dihapus permanen.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                          <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Ya, Hapus
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                  </div>
             </div>
             <p className="text-gray-600 my-3 whitespace-pre-wrap">{item.description}</p>
