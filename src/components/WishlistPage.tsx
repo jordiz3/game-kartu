@@ -54,6 +54,7 @@ import {
   Undo2,
   Camera,
   Star,
+  Loader2,
 } from 'lucide-react';
 
 type WishlistItem = {
@@ -67,6 +68,11 @@ type WishlistItem = {
   photoUrl: string | null;
   ratings: { name: string; rating: number }[];
   createdAt: any;
+};
+
+type ItemStatus = {
+  isLoading?: boolean;
+  isSaving?: boolean;
 };
 
 const CATEGORIES = [
@@ -92,10 +98,10 @@ export default function WishlistPage() {
   const [currentTab, setCurrentTab] = useState('impian');
   const [filterCategory, setFilterCategory] = useState('Semua');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [itemStatuses, setItemStatuses] = useState<Record<string, ItemStatus>>({});
 
   const photoUploadRef = useRef<HTMLInputElement>(null);
-  const [photoUploadId, setPhotoUploadId] = useState<string | null>(null);
-
+  
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -117,7 +123,7 @@ export default function WishlistPage() {
       const items = snapshot.docs.map(
         (doc) => ({ id: doc.id, ...doc.data() } as WishlistItem)
       );
-      items.sort((a, b) => (a.isCompleted ? 1 : -1) - (b.isCompleted ? 1 : -1) || b.createdAt?.seconds - a.createdAt?.seconds);
+      items.sort((a, b) => (a.isCompleted ? 1 : -1) - (b.isCompleted ? 1 : -1) || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
       setWishlist(items);
     }, (error) => {
       console.error(error);
@@ -126,6 +132,10 @@ export default function WishlistPage() {
 
     return () => unsubscribe();
   }, [isAuthenticated, toast]);
+  
+  const setItemLoading = (id: string, isLoading: boolean) => {
+    setItemStatuses(prev => ({ ...prev, [id]: { ...prev[id], isLoading }}));
+  }
 
   const resetForm = () => {
     setTitle('');
@@ -157,15 +167,24 @@ export default function WishlistPage() {
   };
   
   const handleToggleComplete = async (item: WishlistItem) => {
-    const docRef = doc(db, 'wishlist_dates', item.id);
-    await updateDoc(docRef, { isCompleted: !item.isCompleted });
-    toast({
-        title: item.isCompleted ? 'Dikembalikan ke wishlist.' : 'Selamat, date kelakon!',
-        description: item.isCompleted ? 'Siap untuk direcanakan lagi!' : 'Jangan lupa kasih rating & foto ya.',
-      });
+    setItemLoading(item.id, true);
+    try {
+      const docRef = doc(db, 'wishlist_dates', item.id);
+      await updateDoc(docRef, { isCompleted: !item.isCompleted });
+      toast({
+          title: item.isCompleted ? 'Dikembalikan ke wishlist.' : 'Selamat, date kelakon!',
+          description: item.isCompleted ? 'Siap untuk direcanakan lagi!' : 'Jangan lupa kasih rating & foto ya.',
+        });
+    } catch (error) {
+        console.error("Error toggling complete:", error);
+        toast({ variant: 'destructive', title: 'Gagal mengubah status.' });
+    } finally {
+        setItemLoading(item.id, false);
+    }
   };
   
   const handleDeleteItem = async (id: string) => {
+    setItemLoading(id, true);
     try {
       await deleteDoc(doc(db, 'wishlist_dates', id));
       toast({ title: 'Wishlist telah dihapus.'});
@@ -173,10 +192,11 @@ export default function WishlistPage() {
       console.error('Error deleting item:', error);
       toast({ variant: 'destructive', title: 'Gagal menghapus wishlist.' });
     }
+    // No finally block needed as the item will disappear
   };
   
-  const handleSaveEdit = async (id: string, newValues: WishlistItem) => {
-    const docRef = doc(db, 'wishlist_dates', id);
+  const handleSaveEdit = async (id: string, newValues: Omit<WishlistItem, 'id'>) => {
+    setItemLoading(id, true);
     const dataToUpdate = {
       title: newValues.title,
       location: newValues.location,
@@ -186,48 +206,48 @@ export default function WishlistPage() {
     };
 
     try {
+      const docRef = doc(db, 'wishlist_dates', id);
       await updateDoc(docRef, dataToUpdate);
       setEditingItemId(null);
       toast({ title: 'Wishlist berhasil diperbarui!' });
     } catch (error) {
       console.error("Error updating wishlist:", error);
       toast({ variant: 'destructive', title: 'Gagal menyimpan perubahan.' });
+    } finally {
+      setItemLoading(id, false);
     }
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
     const file = e.target.files?.[0];
-    if (!file || !photoUploadId) return;
+    if (!file || !itemId) return;
 
-    toast({ title: 'Mengupload foto...' });
-
-    let fileToUpload: Blob = file;
-    const fileName = file.name.toLowerCase();
-    if (fileName.match(/\.(heic|heif)$/)) {
-        try {
-            const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
-            fileToUpload = convertedBlob as Blob;
-        } catch (error) {
-            console.error('HEIC conversion failed:', error);
-            toast({ variant: 'destructive', title: 'Gagal konversi HEIC.' });
-            return;
-        }
-    }
+    setItemLoading(itemId, true);
+    toast({ title: 'Memproses & mengupload foto...' });
 
     try {
-        const imageRef = storageRef(storage, `wishlist_photos/${photoUploadId}/${Date.now()}-${fileName.replace(/\s/g, '_')}`);
+        let fileToUpload: Blob = file;
+        const fileName = file.name.toLowerCase();
+        if (fileName.match(/\.(heic|heif)$/)) {
+            const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+            fileToUpload = convertedBlob as Blob;
+        }
+        
+        const uniqueFileName = `${Date.now()}-${fileName.replace(/\s/g, '_')}`;
+        const imageRef = storageRef(storage, `wishlist_photos/${itemId}/${uniqueFileName}`);
+        
         await uploadBytes(imageRef, fileToUpload);
         const downloadURL = await getDownloadURL(imageRef);
 
-        const docRef = doc(db, 'wishlist_dates', photoUploadId);
+        const docRef = doc(db, 'wishlist_dates', itemId);
         await updateDoc(docRef, { photoUrl: downloadURL });
 
-        toast({ title: 'Foto berhasil diupload!' });
+        toast({ title: 'Foto berhasil disimpan!' });
     } catch (error) {
         console.error('Error uploading photo:', error);
-        toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: 'Terjadi masalah saat mengunggah foto. Coba lagi.' });
+        toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: 'Pastikan koneksi internet stabil dan coba lagi.' });
     } finally {
-        setPhotoUploadId(null);
+        setItemLoading(itemId, false);
         if (photoUploadRef.current) {
             photoUploadRef.current.value = '';
         }
@@ -238,7 +258,7 @@ export default function WishlistPage() {
     const item = wishlist.find(i => i.id === id);
     if (!item) return;
 
-    const newRatings = item.ratings.map(r => r.name === ratingName ? {...r, rating: newRating} : r);
+    const newRatings = (item.ratings || []).map(r => r.name === ratingName ? {...r, rating: newRating} : r);
     await updateDoc(doc(db, 'wishlist_dates', id), { ratings: newRatings });
   }
 
@@ -290,7 +310,7 @@ export default function WishlistPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul nge-date..." />
           <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Lokasi/Tempat..." />
-          <Select value={category} onValueChange={setCategory}>
+          <Select value={category} onValuechange={setCategory}>
             <SelectTrigger>
               <SelectValue placeholder="Pilih Kategori..." />
             </SelectTrigger>
@@ -346,13 +366,15 @@ export default function WishlistPage() {
                     <WishlistItemCard 
                         key={item.id} 
                         item={item}
+                        status={itemStatuses[item.id] || {}}
                         isEditing={editingItemId === item.id}
                         onEditStart={() => setEditingItemId(item.id)}
                         onEditSave={handleSaveEdit}
                         onEditCancel={() => setEditingItemId(null)}
                         onToggleComplete={() => handleToggleComplete(item)}
                         onDelete={() => handleDeleteItem(item.id)}
-                        onUploadPhotoClick={() => { setPhotoUploadId(item.id); photoUploadRef.current?.click() }}
+                        onUploadPhotoClick={() => photoUploadRef.current?.click()}
+                        onPhotoSelected={(e) => handlePhotoUpload(e, item.id)}
                         onUpdateRating={handleUpdateRating}
                         onAddRatingItem={handleAddRatingItem}
                     />
@@ -361,7 +383,10 @@ export default function WishlistPage() {
           </div>
         </section>
       </Tabs>
-      <input type="file" ref={photoUploadRef} onChange={handlePhotoUpload} className="hidden" accept="image/*,.heic,.heif" />
+      <input type="file" ref={photoUploadRef} onChange={(e) => {
+          // This onChange is now a dummy. The real logic is triggered by onPhotoSelected.
+          // This is a workaround to allow WishlistItemCard to trigger the upload for its specific item.
+      }} className="hidden" accept="image/*,.heic,.heif" />
        <footer className="text-center mt-12 border-t pt-4">
         <Link href="/" className="text-pink-500 hover:underline">
           Kembali ke Kotak Rahasia 💌
@@ -372,10 +397,11 @@ export default function WishlistPage() {
 }
 
 // Sub-component for displaying/editing a single wishlist item
-function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadPhotoClick, onUpdateRating, onAddRatingItem }: any) {
+function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadPhotoClick, onPhotoSelected, onUpdateRating, onAddRatingItem }: any) {
     const [editValues, setEditValues] = useState(item);
     const [isAddingRating, setIsAddingRating] = useState(false);
     const [newRatingName, setNewRatingName] = useState('');
+    const photoInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setEditValues(item);
@@ -386,6 +412,10 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
         setIsAddingRating(false);
         setNewRatingName('');
     }
+
+    const handleUploadClick = () => {
+        photoInputRef.current?.click();
+    };
 
     if (isEditing) {
         return (
@@ -403,8 +433,11 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
                         <label htmlFor={`edit-priority-${item.id}`} className="text-gray-600 text-sm">Penting Banget</label>
                     </div>
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="ghost" onClick={onEditCancel}>Batal</Button>
-                        <Button onClick={() => onEditSave(item.id, editValues)} className="bg-green-500 hover:bg-green-600">Simpen</Button>
+                        <Button variant="ghost" onClick={onEditCancel} disabled={status.isLoading}>Batal</Button>
+                        <Button onClick={() => onEditSave(item.id, editValues)} className="bg-green-500 hover:bg-green-600" disabled={status.isLoading}>
+                            {status.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Simpen
+                        </Button>
                     </div>
                 </div>
             </Card>
@@ -412,7 +445,8 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
     }
     
     return (
-        <Card className={`p-5 shadow-sm ${item.isHighPriority && !item.isCompleted ? 'border-pink-300' : ''}`}>
+        <Card className={`p-5 shadow-sm transition-opacity ${status.isLoading ? 'opacity-50' : 'opacity-100'} ${item.isHighPriority && !item.isCompleted ? 'border-pink-300' : ''}`}>
+            <input type="file" ref={photoInputRef} onChange={onPhotoSelected} className="hidden" accept="image/*,.heic,.heif" />
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="text-xl font-bold">{item.title}</h3>
@@ -424,14 +458,14 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
                          <p className="text-sm text-gray-500 mb-2 flex items-center gap-1"><MapPin size={14}/> Lokasi belum ditentuin</p>
                     )}
                 </div>
-                 <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-500" onClick={onEditStart}><FilePenLine size={18}/></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-green-500" onClick={onToggleComplete}>
-                        {item.isCompleted ? <Undo2 size={18}/> : <CheckCircle2 size={18} />}
+                 <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-500" onClick={onEditStart} disabled={status.isLoading}><FilePenLine size={18}/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-green-500" onClick={onToggleComplete} disabled={status.isLoading}>
+                         {status.isLoading ? <Loader2 size={18} className="animate-spin" /> : item.isCompleted ? <Undo2 size={18}/> : <CheckCircle2 size={18} />}
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500"><Trash2 size={18}/></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500" disabled={status.isLoading}><Trash2 size={18}/></Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
@@ -461,12 +495,13 @@ function WishlistItemCard({ item, isEditing, onEditStart, onEditSave, onEditCanc
             {item.isCompleted && (
                  <div className="mt-4 pt-4 border-t">
                     {item.photoUrl ? (
-                         <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                         <div className="relative w-full h-48 rounded-lg overflow-hidden my-4">
                              <Image src={item.photoUrl} alt={`Foto ${item.title}`} layout="fill" objectFit="cover" />
                          </div>
                     ) : (
-                        <Button variant="outline" className="w-full border-dashed" onClick={onUploadPhotoClick}>
-                            <Camera className="mr-2"/> Upload Foto Kenangan
+                        <Button variant="outline" className="w-full border-dashed" onClick={handleUploadClick} disabled={status.isLoading}>
+                            {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
+                            Upload Foto Kenangan
                         </Button>
                     )}
                     <div className="space-y-2 mt-4">
