@@ -13,13 +13,12 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { Send, CheckCircle, Sparkles, LoaderCircle } from 'lucide-react';
+import { Send, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
-import { suggestQuestion } from '@/ai/flows/suggest-question-flow';
 
 type Question = {
   id: string;
@@ -41,7 +40,6 @@ export default function SecretBox() {
   const [questionInput, setQuestionInput] = useState('');
   const [answerInputs, setAnswerInputs] = useState<AnswerInputs>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -154,26 +152,6 @@ export default function SecretBox() {
     }
   };
   
-  const handleSuggestQuestion = async () => {
-    setIsGenerating(true);
-    try {
-        const result = await suggestQuestion({
-            currentUser,
-            recipient: currentUser === 'cipa' ? 'jojo' : 'cipa',
-        });
-        setQuestionInput(result.suggestedQuestion);
-    } catch (error) {
-        console.error("Error suggesting question: ", error);
-        toast({
-            variant: "destructive",
-            title: "Gagal Mendapat Ide",
-            description: "AI sedang sibuk, coba beberapa saat lagi ya.",
-        });
-    } finally {
-        setIsGenerating(false);
-    }
-  };
-
   const unansweredForMe = allQuestions.filter(
     (q) => q.recipient === currentUser && !q.isAnswered
   );
@@ -226,28 +204,13 @@ export default function SecretBox() {
               placeholder="Ketik pertanyaan rahasiamu di sini..."
               className="focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition"
             />
-             <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                <Button
-                  onClick={addQuestion}
-                  className="btn w-full bg-pink-500 text-white font-bold py-3 text-base hover:bg-pink-600"
-                >
-                  Kirim Pertanyaan Rahasia
-                  <Send className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={handleSuggestQuestion}
-                  disabled={isGenerating}
-                  variant="outline"
-                  className="btn w-full sm:w-auto"
-                >
-                  {isGenerating ? (
-                    <LoaderCircle className="animate-spin mr-2 h-4 w-4" />
-                  ) : (
-                    <Sparkles className="mr-2 h-4 w-4" />
-                  )}
-                  Beri Ide
-                </Button>
-             </div>
+            <Button
+              onClick={addQuestion}
+              className="btn w-full mt-4 bg-pink-500 text-white font-bold py-3 text-base hover:bg-pink-600"
+            >
+              Kirim Pertanyaan Rahasia
+              <Send className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </section>
 
