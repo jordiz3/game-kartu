@@ -1,5 +1,6 @@
-// IMPORTANT: Fill in your Firebase project's configuration details below.
-// You can find these details in your Firebase project settings.
+// IMPORTANT: This file reads the configuration from environment variables.
+// You must set these variables in your hosting environment (e.g., Firebase App Hosting).
+// For local development, you can create a .env.local file.
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

@@ -4,7 +4,18 @@ import { getAuth } from "firebase/auth";
 import { firebaseConfig } from "./firebaseConfig";
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app;
+if (!getApps().length) {
+    try {
+        app = initializeApp(firebaseConfig);
+    } catch (e) {
+        console.error("Firebase initialization error", e);
+    }
+} else {
+    app = getApp();
+}
+
+
 const db = getFirestore(app);
 const auth = getAuth(app);
 
