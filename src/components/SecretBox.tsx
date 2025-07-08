@@ -303,8 +303,8 @@ export default function SecretBox() {
       </div>
 
       <footer className="text-center mt-12 border-t pt-4">
-        <Link href="/game-kartu" className="text-pink-500 hover:underline">
-          Lihat Project Lain: Game Kartu
+        <Link href="/wishlist" className="text-pink-500 hover:underline">
+          Lihat Wishlist Date Kita 💕
         </Link>
       </footer>
     </div>
