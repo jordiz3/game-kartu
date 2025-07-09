@@ -310,7 +310,7 @@ export default function WishlistPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul nge-date..." />
           <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Lokasi/Tempat..." />
-          <Select value={category} onValuechange={setCategory}>
+          <Select value={category} onValueChange={setCategory}>
             <SelectTrigger>
               <SelectValue placeholder="Pilih Kategori..." />
             </SelectTrigger>
