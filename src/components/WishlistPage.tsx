@@ -98,9 +98,11 @@ export default function WishlistPage() {
   const [filterCategory, setFilterCategory] = useState('Semua');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemStatuses, setItemStatuses] = useState<Record<string, ItemStatus>>({});
-
-  const photoUploadRef = useRef<HTMLInputElement>(null);
   
+  // Centralized file upload logic
+  const photoUploadRef = useRef<HTMLInputElement>(null);
+  const [currentItemIdForUpload, setCurrentItemIdForUpload] = useState<string | null>(null);
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -191,7 +193,6 @@ export default function WishlistPage() {
       console.error('Error deleting item:', error);
       toast({ variant: 'destructive', title: 'Gagal menghapus wishlist.' });
     }
-    // No finally block needed as the item will disappear
   };
   
   const handleSaveEdit = async (id: string, newValues: Omit<WishlistItem, 'id'>) => {
@@ -217,39 +218,46 @@ export default function WishlistPage() {
     }
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
-    const file = e.target.files?.[0];
-    if (!file || !itemId) return;
+  const handlePhotoUploadTrigger = (itemId: string) => {
+    setCurrentItemIdForUpload(itemId);
+    photoUploadRef.current?.click();
+  };
 
+  const handleFileSelectedForUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentItemIdForUpload) return;
+    
+    const itemId = currentItemIdForUpload;
     setItemLoading(itemId, true);
     toast({ title: 'Memproses & mengupload foto...' });
 
     try {
-        let fileToUpload: Blob = file;
-        const fileName = file.name.toLowerCase();
-        if (fileName.match(/\.(heic|heif)$/)) {
-            const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
-            fileToUpload = convertedBlob as Blob;
-        }
-        
-        const uniqueFileName = `${Date.now()}-${fileName.replace(/\s/g, '_')}`;
-        const imageRef = storageRef(storage, `wishlist_photos/${itemId}/${uniqueFileName}`);
-        
-        await uploadBytes(imageRef, fileToUpload);
-        const downloadURL = await getDownloadURL(imageRef);
+      let fileToUpload: Blob = file;
+      const fileName = file.name.toLowerCase();
+      if (fileName.match(/\.(heic|heif)$/)) {
+        const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+        fileToUpload = convertedBlob as Blob;
+      }
+      
+      const uniqueFileName = `${Date.now()}-${fileName.replace(/\s/g, '_')}`;
+      const imageRef = storageRef(storage, `wishlist_photos/${itemId}/${uniqueFileName}`);
+      
+      await uploadBytes(imageRef, fileToUpload);
+      const downloadURL = await getDownloadURL(imageRef);
 
-        const docRef = doc(db, 'wishlist_dates', itemId);
-        await updateDoc(docRef, { photoUrl: downloadURL });
+      const docRef = doc(db, 'wishlist_dates', itemId);
+      await updateDoc(docRef, { photoUrl: downloadURL });
 
-        toast({ title: 'Foto berhasil disimpan!' });
+      toast({ title: 'Foto berhasil disimpan!' });
     } catch (error) {
-        console.error('Error uploading photo:', error);
-        toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: 'Pastikan koneksi internet stabil dan coba lagi.' });
+      console.error('Error uploading photo:', error);
+      toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: 'Pastikan koneksi internet stabil dan coba lagi.' });
     } finally {
-        setItemLoading(itemId, false);
-        if (photoUploadRef.current) {
-            photoUploadRef.current.value = '';
-        }
+      setItemLoading(itemId, false);
+      setCurrentItemIdForUpload(null);
+      if (photoUploadRef.current) {
+        photoUploadRef.current.value = '';
+      }
     }
   };
   
@@ -372,8 +380,7 @@ export default function WishlistPage() {
                         onEditCancel={() => setEditingItemId(null)}
                         onToggleComplete={() => handleToggleComplete(item)}
                         onDelete={() => handleDeleteItem(item.id)}
-                        onUploadPhotoClick={() => photoUploadRef.current?.click()}
-                        onPhotoSelected={(e) => handlePhotoUpload(e, item.id)}
+                        onUploadClick={handlePhotoUploadTrigger}
                         onUpdateRating={handleUpdateRating}
                         onAddRatingItem={handleAddRatingItem}
                     />
@@ -382,10 +389,13 @@ export default function WishlistPage() {
           </div>
         </section>
       </Tabs>
-      <input type="file" ref={photoUploadRef} onChange={(e) => {
-          // This onChange is now a dummy. The real logic is triggered by onPhotoSelected.
-          // This is a workaround to allow WishlistItemCard to trigger the upload for its specific item.
-      }} className="hidden" accept="image/*,.heic,.heif" />
+      <input 
+        type="file" 
+        ref={photoUploadRef} 
+        onChange={handleFileSelectedForUpload} 
+        className="hidden" 
+        accept="image/*,.heic,.heif" 
+      />
        <footer className="text-center mt-12 border-t pt-4">
         <Link href="/" className="text-pink-500 hover:underline">
           Kembali ke Kotak Rahasia 💌
@@ -396,11 +406,10 @@ export default function WishlistPage() {
 }
 
 // Sub-component for displaying/editing a single wishlist item
-function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadPhotoClick, onPhotoSelected, onUpdateRating, onAddRatingItem }: any) {
+function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadClick, onUpdateRating, onAddRatingItem }: any) {
     const [editValues, setEditValues] = useState(item);
     const [isAddingRating, setIsAddingRating] = useState(false);
     const [newRatingName, setNewRatingName] = useState('');
-    const photoInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setEditValues(item);
@@ -411,10 +420,6 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         setIsAddingRating(false);
         setNewRatingName('');
     }
-
-    const handleUploadClick = () => {
-        photoInputRef.current?.click();
-    };
 
     if (isEditing) {
         return (
@@ -445,7 +450,6 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
     
     return (
         <Card className={`p-5 shadow-sm transition-opacity ${status.isLoading ? 'opacity-50' : 'opacity-100'} ${item.isHighPriority && !item.isCompleted ? 'border-pink-300' : ''}`}>
-            <input type="file" ref={photoInputRef} onChange={onPhotoSelected} className="hidden" accept="image/*,.heic,.heif" />
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="text-xl font-bold">{item.title}</h3>
@@ -498,7 +502,7 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                              <Image src={item.photoUrl} alt={`Foto ${item.title}`} layout="fill" objectFit="cover" />
                          </div>
                     ) : (
-                        <Button variant="outline" className="w-full border-dashed" onClick={handleUploadClick} disabled={status.isLoading}>
+                        <Button variant="outline" className="w-full border-dashed" onClick={() => onUploadClick(item.id)} disabled={status.isLoading}>
                             {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
                             Upload Foto Kenangan
                         </Button>
