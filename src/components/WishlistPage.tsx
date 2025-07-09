@@ -10,7 +10,6 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  orderBy,
   serverTimestamp,
 } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
@@ -118,7 +117,7 @@ export default function WishlistPage() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const q = query(collection(db, 'wishlist_dates'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'wishlist_dates'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items = snapshot.docs.map(
         (doc) => ({ id: doc.id, ...doc.data() } as WishlistItem)
@@ -542,7 +541,7 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                             <div className="pt-1">
                                  <Button variant="link" size="sm" className="p-0 h-auto text-pink-600 font-semibold" onClick={() => setIsAddingRating(true)}>
                                     + Tambah Kategori Rating
-                                </Button>
+                                 </Button>
                             </div>
                         )}
                     </div>

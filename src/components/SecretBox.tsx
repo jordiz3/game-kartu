@@ -9,7 +9,6 @@ import {
   doc,
   updateDoc,
   query,
-  orderBy,
   serverTimestamp,
 } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
@@ -64,12 +63,14 @@ export default function SecretBox() {
     if (!isAuthenticated) return;
 
     const questionsCollectionRef = collection(db, 'secret_box');
-    const q = query(questionsCollectionRef, orderBy('createdAt', 'desc'));
+    const q = query(questionsCollectionRef);
 
     const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
       const fetchedQuestions = snapshot.docs.map(
         (doc) => ({ id: doc.id, ...doc.data() } as Question)
       );
+      // Sort client-side to avoid needing a composite index in Firestore
+      fetchedQuestions.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
       setAllQuestions(fetchedQuestions);
     }, (error) => {
         console.error("Snapshot error: ", error);
