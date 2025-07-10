@@ -143,13 +143,23 @@ export default function ThisOrThatPage() {
             if (currentQuestionIndex < questions.length - 1) {
                 setCurrentQuestionIndex(prev => prev + 1);
                 setTransitionState('in');
-                 // Reset the transition state after the animation is supposed to be done
-                setTimeout(() => setTransitionState(null), 500);
             } else {
                 setGameState('player_select');
+                setActivePlayer(null); // Reset player for the next round selection
             }
-        }, 500); 
+        }, 300); // Animation duration for 'out'
     };
+    
+    // Effect to reset transition state after 'in' animation
+    useEffect(() => {
+        if (transitionState === 'in') {
+            const timer = setTimeout(() => {
+                setTransitionState(null);
+            }, 300); // Animation duration for 'in'
+            return () => clearTimeout(timer);
+        }
+    }, [transitionState]);
+
 
     const compatibilityScore = useMemo(() => {
         let sameAnswers = 0;
@@ -276,10 +286,16 @@ export default function ThisOrThatPage() {
                 .animate-fade-in-scale { animation: fade-in-scale 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 
                 .question-container {
-                    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s;
+                    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
+                    opacity: 1;
+                    transform: scale(1);
                 }
                 .question-container.out { transform: translateY(50px) scale(0.9); opacity: 0; }
-                .question-container.in { transform: translateY(0px) scale(1); opacity: 1; }
+                .question-container.in { 
+                    /* Start from 'out' state and transition to default */
+                    transform: translateY(50px) scale(0.9); 
+                    opacity: 0; 
+                }
 
                 .choice-card {
                     transition: transform 0.3s, box-shadow 0.3s;
@@ -306,6 +322,7 @@ export default function ThisOrThatPage() {
                                 {/* Pilihan A */}
                                 <button
                                     onClick={() => handleChoice('a')}
+                                    disabled={!!transitionState}
                                     className="choice-card group p-8 rounded-3xl flex flex-col items-center justify-center text-center bg-black/20 border border-white/10 choice-glow-a">
                                     <h2 className="text-3xl md:text-4xl font-bold text-white/90 group-hover:text-white">{currentQuestion.a}</h2>
                                 </button>
@@ -315,6 +332,7 @@ export default function ThisOrThatPage() {
                                 {/* Pilihan B */}
                                 <button
                                     onClick={() => handleChoice('b')}
+                                    disabled={!!transitionState}
                                     className="choice-card group p-8 rounded-3xl flex flex-col items-center justify-center text-center bg-black/20 border border-white/10 choice-glow-b">
                                     <h2 className="text-3xl md:text-4xl font-bold text-white/90 group-hover:text-white">{currentQuestion.b}</h2>
                                 </button>
