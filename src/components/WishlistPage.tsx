@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -54,6 +55,7 @@ import {
   Camera,
   Star,
   Loader2,
+  Home,
 } from 'lucide-react';
 
 type WishlistItem = {
@@ -99,7 +101,6 @@ export default function WishlistPage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemStatuses, setItemStatuses] = useState<Record<string, ItemStatus>>({});
   
-  // Centralized file upload logic
   const photoUploadRef = useRef<HTMLInputElement>(null);
   const [currentItemIdForUpload, setCurrentItemIdForUpload] = useState<string | null>(null);
 
@@ -397,16 +398,8 @@ export default function WishlistPage() {
         accept="image/*,.heic,.heif" 
       />
        <footer className="text-center mt-12 border-t pt-4">
-        <Link href="/" className="text-pink-500 hover:underline">
-          Kembali ke Kotak Rahasia 💌
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/deep-talk" className="text-pink-500 hover:underline">
-          Main Kartu Deep Talk 🎴
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/truth-or-dare" className="text-pink-500 hover:underline">
-          Main Truth or Dare 🔥
+         <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
+            <Home size={16}/> Kembali ke Menu Utama
         </Link>
       </footer>
     </div>

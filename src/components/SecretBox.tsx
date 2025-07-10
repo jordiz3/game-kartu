@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,7 +13,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { Send, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
+import { Send, CheckCircle, Sparkles, Loader2, Home } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { cn } from '../lib/utils';
@@ -342,16 +343,8 @@ export default function SecretBox() {
       </div>
 
       <footer className="text-center mt-12 border-t pt-4">
-        <Link href="/wishlist" className="text-pink-500 hover:underline">
-          Lihat Wishlist Date Kita 💕
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/deep-talk" className="text-pink-500 hover:underline">
-          Main Kartu Deep Talk 🎴
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/truth-or-dare" className="text-pink-500 hover:underline">
-          Main Truth or Dare 🔥
+         <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
+            <Home size={16}/> Kembali ke Menu Utama
         </Link>
       </footer>
     </div>

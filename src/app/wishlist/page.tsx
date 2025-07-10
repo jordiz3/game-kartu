@@ -1,3 +1,4 @@
+
 'use client';
 
 import dynamic from 'next/dynamic';
@@ -40,6 +41,6 @@ const WishlistPage = dynamic(() => import('../../components/WishlistPage'), {
   loading: () => <WishlistSkeleton />,
 });
 
-export default function Home() {
+export default function Wishlist() {
   return <WishlistPage />;
 }

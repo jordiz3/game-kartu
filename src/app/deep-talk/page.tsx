@@ -1,5 +1,7 @@
+
 import DeepTalkGame from '../../components/DeepTalkGame';
 import Link from 'next/link';
+import { Home } from 'lucide-react';
 
 export default function DeepTalkPage() {
   return (
@@ -8,16 +10,8 @@ export default function DeepTalkPage() {
         <DeepTalkGame />
       </div>
        <footer className="text-center pt-4 pb-4">
-        <Link href="/" className="text-pink-500 hover:underline">
-          Kembali ke Kotak Rahasia 💌
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/wishlist" className="text-pink-500 hover:underline">
-          Lihat Wishlist Date Kita 💕
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/truth-or-dare" className="text-pink-500 hover:underline">
-          Main Truth or Dare 🔥
+        <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
+            <Home size={16}/> Kembali ke Menu Utama
         </Link>
       </footer>
     </div>

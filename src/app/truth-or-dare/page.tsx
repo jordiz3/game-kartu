@@ -1,5 +1,7 @@
+
 import TruthOrDareGame from '../../components/TruthOrDareGame';
 import Link from 'next/link';
+import { Home } from 'lucide-react';
 
 export default function TruthOrDarePage() {
   return (
@@ -8,16 +10,8 @@ export default function TruthOrDarePage() {
         <TruthOrDareGame />
       </div>
       <footer className="text-center py-4">
-        <Link href="/" className="text-pink-500 hover:underline">
-          Kembali ke Kotak Rahasia 💌
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/wishlist" className="text-pink-500 hover:underline">
-          Lihat Wishlist Date Kita 💕
-        </Link>
-        <span className="mx-2 text-gray-400">|</span>
-        <Link href="/deep-talk" className="text-pink-500 hover:underline">
-          Main Kartu Deep Talk 🎴
+        <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
+            <Home size={16}/> Kembali ke Menu Utama
         </Link>
       </footer>
     </div>

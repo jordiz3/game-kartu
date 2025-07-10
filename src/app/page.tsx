@@ -1,61 +1,81 @@
+
 'use client';
 
-import dynamic from 'next/dynamic';
-import { Skeleton } from '../components/ui/skeleton';
+import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Mail, Heart, MessageSquare, Flame } from 'lucide-react';
 
-// A skeleton loader that mimics the app's layout for a better UX.
-function AppSkeleton() {
+const menuItems = [
+  {
+    href: '/secret-box',
+    icon: Mail,
+    title: 'Kotak Rahasia',
+    description: 'Kirim & jawab pertanyaan rahasia.',
+    bgClass: 'from-pink-100 to-rose-100',
+    iconColor: 'text-pink-500',
+  },
+  {
+    href: '/wishlist',
+    icon: Heart,
+    title: 'Wishlist Date',
+    description: 'Rencanakan & wujudkan kencan impian.',
+    bgClass: 'from-purple-100 to-indigo-100',
+    iconColor: 'text-purple-500',
+  },
+  {
+    href: '/deep-talk',
+    icon: MessageSquare,
+    title: 'Kartu Deep Talk',
+    description: 'Mulai percakapan mendalam.',
+    bgClass: 'from-blue-100 to-cyan-100',
+    iconColor: 'text-blue-500',
+  },
+  {
+    href: '/truth-or-dare',
+    icon: Flame,
+    title: 'Truth or Dare',
+    description: 'Mainkan permainan klasik yang seru.',
+    bgClass: 'from-orange-100 to-amber-100',
+    iconColor: 'text-orange-500',
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="container mx-auto max-w-2xl p-4 md:p-8 animate-pulse">
-      <header className="text-center mb-8">
-        <Skeleton className="h-14 w-64 mx-auto" />
-        <Skeleton className="h-4 w-48 mx-auto mt-4" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #fde6f1 0%, #e6e9f0 100%)' }}>
+      <header className="text-center mb-10 md:mb-12">
+        <h1 className="font-handwriting text-6xl md:text-7xl text-pink-500">
+          Cipa & Jojo
+        </h1>
+        <p className="text-gray-600 mt-2 text-lg">Pilih permainan untuk dimulai!</p>
       </header>
 
-      <div className="flex justify-center mb-8 bg-white p-1.5 rounded-full shadow-inner">
-        <Skeleton className="h-10 w-1/2 rounded-full bg-pink-100" />
-        <Skeleton className="h-10 w-1/2 rounded-full bg-white ml-1.5" />
-      </div>
+      <main className="w-full max-w-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link href={item.href} key={item.href}>
+                <Card className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ease-in-out cursor-pointer h-full bg-gradient-to-br ${item.bgClass}`}>
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <div className={`p-3 rounded-full bg-white shadow-md ${item.iconColor}`}>
+                      <Icon size={28} />
+                    </div>
+                    <div>
+                      <CardTitle className="text-gray-800">{item.title}</CardTitle>
+                      <CardDescription className="text-gray-600">{item.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      </main>
 
-      <div className="space-y-10">
-        <section id="ask-form-section" className="mb-10">
-          <Skeleton className="h-8 w-80 mx-auto mb-4" />
-          <div className="bg-white p-6 rounded-2xl shadow-md space-y-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </section>
-
-        <section id="unanswered-section" className="mb-10">
-          <Skeleton className="h-8 w-64 mx-auto mb-4" />
-          <div className="bg-white p-5 rounded-xl shadow-md space-y-4">
-            <Skeleton className="h-4 w-1/3" />
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-20 w-full mt-2" />
-            <Skeleton className="h-10 w-full mt-2" />
-          </div>
-        </section>
-
-        <section id="answered-section">
-          <Skeleton className="h-8 w-48 mx-auto mb-4" />
-          <div className="bg-white p-5 rounded-xl shadow-md space-y-3">
-             <Skeleton className="h-4 w-1/3" />
-             <Skeleton className="h-5 w-2/3" />
-             <div className="border-b my-3"></div>
-             <Skeleton className="h-4 w-1/3" />
-             <Skeleton className="h-5 w-3/4" />
-          </div>
-        </section>
-      </div>
+      <footer className="text-center mt-12 text-gray-500">
+        <p>Sebuah tempat spesial untuk kita berdua ♥</p>
+      </footer>
     </div>
   );
-}
-
-const SecretBox = dynamic(() => import('../components/SecretBox'), {
-  ssr: false,
-  loading: () => <AppSkeleton />,
-});
-
-export default function Home() {
-  return <SecretBox />;
 }
