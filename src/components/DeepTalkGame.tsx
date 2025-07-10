@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -643,7 +642,7 @@ export default function DeepTalkGame() {
             <button
               key={category}
               onClick={() => selectCategory(category)}
-              className="category-btn bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md"
+              className="category-btn bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg shadow-sm"
             >
               {category}
             </button>
@@ -668,7 +667,7 @@ export default function DeepTalkGame() {
           >
             {/* Sisi Depan Kartu */}
             <div className="card-face card-front absolute w-full h-full bg-white rounded-2xl flex flex-col items-center justify-center p-6 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-red-300 mb-4" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-pink-300 mb-4" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
               </svg>
               <h2 className="font-display text-2xl text-gray-700">Siap Terhubung?</h2>
@@ -676,15 +675,17 @@ export default function DeepTalkGame() {
             </div>
 
             {/* Sisi Belakang Kartu */}
-            <div className="card-face card-back absolute w-full h-full bg-white rounded-2xl flex flex-col items-center justify-between p-6 md:p-8 text-center">
-               <div className={cn("transition-opacity duration-300", { 'opacity-0': !isFlipped, 'opacity-100': isFlipped })}>
+            <div className="card-face card-back absolute w-full h-full bg-white rounded-2xl flex flex-col p-6 md:p-8 text-center">
+               <div className={cn("flex flex-col h-full w-full transition-opacity duration-300", { 'opacity-0': !isFlipped, 'opacity-100': isFlipped })}>
                   {currentQuestion && (
                     <>
-                        <div className="absolute top-4 left-4 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full">
-                            {currentQuestion.category}
+                        <div className="flex-shrink-0">
+                             <div className="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                {currentQuestion.category}
+                            </div>
                         </div>
-                        <div className="flex-grow flex items-center justify-center h-full">
-                            <p className="text-xl md:text-2xl text-gray-800 leading-relaxed px-4">
+                        <div className="flex-grow flex items-center justify-center">
+                            <p className="text-xl md:text-2xl text-gray-800 leading-relaxed">
                             {currentQuestion.question}
                             </p>
                         </div>
@@ -700,14 +701,14 @@ export default function DeepTalkGame() {
           <button
             onClick={showCategorySelection}
             disabled={isAnimating}
-            className="btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Ganti Kategori
           </button>
           <button
             onClick={drawCard}
             disabled={isAnimating}
-            className="btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAnimating ? '...' : 'Ambil Kartu'}
           </button>
@@ -726,6 +727,7 @@ export default function DeepTalkGame() {
         }
         .category-btn:hover {
             transform: scale(1.05);
+            background-color: #f9fafb; /* gray-50 */
         }
         .card-element {
           transform-style: preserve-3d;
@@ -746,5 +748,4 @@ export default function DeepTalkGame() {
         }
       `}</style>
     </>
-  );
-}
+    
