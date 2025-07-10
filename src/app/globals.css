@@ -48,6 +48,9 @@
   .font-handwriting {
       font-family: var(--font-caveat), cursive;
   }
+  .font-display {
+      font-family: var(--font-playfair-display), serif;
+  }
 }
 
 @layer components {

@@ -400,6 +400,10 @@ export default function WishlistPage() {
         <Link href="/" className="text-pink-500 hover:underline">
           Kembali ke Kotak Rahasia 💌
         </Link>
+        <span className="mx-2 text-gray-400">|</span>
+        <Link href="/deep-talk" className="text-pink-500 hover:underline">
+          Main Kartu Deep Talk 🎴
+        </Link>
       </footer>
     </div>
   );
