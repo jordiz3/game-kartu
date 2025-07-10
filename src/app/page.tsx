@@ -47,7 +47,7 @@ export default function HomePage() {
         <h1 className="font-handwriting text-6xl md:text-7xl text-pink-500">
           Cipa & Jojo
         </h1>
-        <p className="text-gray-600 mt-2 text-lg">Pilih permainan untuk dimulai!</p>
+        <p className="text-gray-600 mt-2 text-lg">Gerbang menuju petualangan nge-date kita!</p>
       </header>
 
       <main className="w-full max-w-2xl">
