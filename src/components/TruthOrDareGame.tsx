@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 const truths = [
     "Kapan terakhir kali kamu bohong dan tentang apa?",
