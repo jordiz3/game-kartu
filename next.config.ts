@@ -28,6 +28,18 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/sitemap.xml',
+      },
+      {
+        source: '/robots.txt',
+        destination: '/robots.txt',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
