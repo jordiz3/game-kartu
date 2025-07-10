@@ -1,4 +1,4 @@
-import DeepTalkGame from '@/components/DeepTalkGame';
+import DeepTalkGame from '../../components/DeepTalkGame';
 import Link from 'next/link';
 
 export default function DeepTalkPage() {

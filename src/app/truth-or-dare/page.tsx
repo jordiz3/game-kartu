@@ -1,4 +1,4 @@
-import TruthOrDareGame from '@/components/TruthOrDareGame';
+import TruthOrDareGame from '../../components/TruthOrDareGame';
 import Link from 'next/link';
 
 export default function TruthOrDarePage() {

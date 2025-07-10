@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '../components/ui/skeleton';
 
 // A skeleton loader that mimics the app's layout for a better UX.
 function AppSkeleton() {
@@ -51,7 +51,7 @@ function AppSkeleton() {
   );
 }
 
-const SecretBox = dynamic(() => import('@/components/SecretBox'), {
+const SecretBox = dynamic(() => import('../components/SecretBox'), {
   ssr: false,
   loading: () => <AppSkeleton />,
 });

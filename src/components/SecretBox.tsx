@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db, auth } from '@/lib/firebase';
+import { db, auth } from '../lib/firebase';
 import {
   collection,
   addDoc,
@@ -13,12 +13,12 @@ import {
 } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { Send, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { cn } from '../lib/utils';
 import Link from 'next/link';
-import { useToast } from "@/hooks/use-toast";
-import { suggestQuestion } from '@/ai/flows/suggest-question-flow';
+import { useToast } from "../hooks/use-toast";
+import { suggestQuestion } from '../ai/flows/suggest-question-flow';
 
 
 type Question = {

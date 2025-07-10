@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '../../components/ui/skeleton';
 
 // A skeleton loader for the wishlist page
 function WishlistSkeleton() {
@@ -35,7 +35,7 @@ function WishlistSkeleton() {
   );
 }
 
-const WishlistPage = dynamic(() => import('@/components/WishlistPage'), {
+const WishlistPage = dynamic(() => import('../../components/WishlistPage'), {
   ssr: false,
   loading: () => <WishlistSkeleton />,
 });
