@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText } from 'lucide-react';
 
 const menuItems = [
   {
@@ -53,6 +53,14 @@ const menuItems = [
     description: 'Pilih jalan ceritamu sendiri.',
     bgClass: 'from-gray-200 to-slate-200',
     iconColor: 'text-gray-600',
+  },
+   {
+    href: '/bikin-cerita-absurd',
+    icon: BookText,
+    title: 'Cerita Absurd',
+    description: 'Isi kata & lihat hasilnya yang lucu.',
+    bgClass: 'from-yellow-100 to-lime-100',
+    iconColor: 'text-yellow-600',
   },
 ];
 
