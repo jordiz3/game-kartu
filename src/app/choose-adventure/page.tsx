@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -123,13 +124,17 @@ export default function ChooseAdventurePage() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Button onClick={() => handleMakeChoice(story.choiceA)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-4 flex items-center justify-center">
-                            {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                            {story.choiceA}
+                        <Button onClick={() => handleMakeChoice(story.choiceA)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-3">
+                            <span className="flex items-center gap-2">
+                                {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
+                                {story.choiceA}
+                            </span>
                         </Button>
-                        <Button onClick={() => handleMakeChoice(story.choiceB)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-4 flex items-center justify-center">
-                            {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                            {story.choiceB}
+                        <Button onClick={() => handleMakeChoice(story.choiceB)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-3">
+                             <span className="flex items-center gap-2">
+                                {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
+                                {story.choiceB}
+                             </span>
                         </Button>
                     </div>
                 </CardContent>
@@ -162,6 +167,9 @@ export default function ChooseAdventurePage() {
                 line-height: 1.4;
                 text-align: center;
                 transition: all 0.2s ease-in-out;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             .choice-button:hover:not(:disabled) {
                 background-color: rgba(255, 255, 255, 0.2);
