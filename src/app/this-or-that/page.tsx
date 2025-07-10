@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, Heart, Sparkles, Meh } from 'lucide-react';
+import { Home, Heart, Sparkles, Meh, Users } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import Link from 'next/link';
 import { Button } from '../../components/ui/button';
@@ -94,11 +94,11 @@ export default function ThisOrThatPage() {
         setCipaAnswers({});
         setJojoAnswers({});
         setCurrentQuestionIndex(0);
+        setGameState('player_select');
         return newQuestions;
     };
     
     useEffect(() => {
-        // Prepare questions on initial load
         if (questions.length === 0) {
             setQuestions(shuffleAndTake(allQuestions, SESSION_QUESTIONS));
         }
@@ -107,14 +107,19 @@ export default function ThisOrThatPage() {
 
     const startGame = (player: Player) => {
         let sessionQuestions = questions;
+        if (sessionQuestions.length === 0) {
+           sessionQuestions = shuffleAndTake(allQuestions, SESSION_QUESTIONS);
+           setQuestions(sessionQuestions);
+        }
+
         const cipaDone = Object.keys(cipaAnswers).length >= sessionQuestions.length;
         const jojoDone = Object.keys(jojoAnswers).length >= sessionQuestions.length;
 
-        // If both players have played, start a completely new session.
         if (cipaDone && jojoDone) {
-            sessionQuestions = prepareNewSession();
-        } else if (sessionQuestions.length === 0) {
-            sessionQuestions = prepareNewSession();
+            prepareNewSession();
+            // After preparing a new session, we restart the selection process
+            // so let's not proceed to 'playing' state just yet.
+            return; 
         }
 
         setActivePlayer(player);
@@ -138,24 +143,18 @@ export default function ThisOrThatPage() {
             if (currentQuestionIndex < questions.length - 1) {
                 setCurrentQuestionIndex(prev => prev + 1);
                 setTransitionState('in');
+                 // Reset the transition state after the animation is supposed to be done
+                setTimeout(() => setTransitionState(null), 500);
             } else {
-                const cipaDone = Object.keys(cipaAnswers).length === questions.length || (activePlayer === 'cipa');
-                const jojoDone = Object.keys(jojoAnswers).length === questions.length || (activePlayer === 'jojo');
-
-                if (cipaDone && jojoDone) {
-                    setGameState('results');
-                } else {
-                    setGameState('player_select');
-                }
+                setGameState('player_select');
             }
         }, 500); 
     };
-    
+
     const compatibilityScore = useMemo(() => {
-        if (gameState !== 'results') return 0;
         let sameAnswers = 0;
-        const totalQuestions = Math.min(Object.keys(cipaAnswers).length, Object.keys(jojoAnswers).length, questions.length);
-        if (totalQuestions === 0) return 0;
+        const totalQuestions = Math.min(Object.keys(cipaAnswers).length, Object.keys(jojoAnswers).length);
+        if (totalQuestions === 0 || Object.keys(cipaAnswers).length !== Object.keys(jojoAnswers).length) return 0;
         
         for (let i = 0; i < totalQuestions; i++) {
             if (cipaAnswers[i] && cipaAnswers[i] === jojoAnswers[i]) {
@@ -163,7 +162,7 @@ export default function ThisOrThatPage() {
             }
         }
         return Math.round((sameAnswers / totalQuestions) * 100);
-    }, [gameState, cipaAnswers, jojoAnswers, questions.length]);
+    }, [cipaAnswers, jojoAnswers]);
 
     const progress = questions.length > 0 ? Math.round(((currentQuestionIndex + 1) / questions.length) * 100) : 0;
 
@@ -171,12 +170,13 @@ export default function ThisOrThatPage() {
         let Icon = Meh;
         let message = "Kalian masih dalam tahap penjajakan!";
         let colorClass = "text-yellow-400";
+        const score = compatibilityScore;
 
-        if (compatibilityScore >= 80) {
+        if (score >= 80) {
             Icon = Heart;
             message = "Sehati banget! Kalian emang jodoh!";
             colorClass = "text-red-400";
-        } else if (compatibilityScore >= 50) {
+        } else if (score >= 50) {
             Icon = Sparkles;
             message = "Cukup sefrekuensi! Banyak kesamaan di antara kalian.";
             colorClass = "text-cyan-400";
@@ -186,7 +186,7 @@ export default function ThisOrThatPage() {
             <div className="flex flex-col items-center justify-center text-center p-8 bg-black/30 rounded-3xl backdrop-blur-sm border border-white/20 animate-fade-in-scale">
                 <h2 className="text-2xl font-bold text-white/80 mb-2">Hasil Kekompakan</h2>
                 <Icon className={cn("w-24 h-24 my-4", colorClass)} strokeWidth={1.5} />
-                <p className={cn("text-6xl font-bold mb-4", colorClass)}>{compatibilityScore}%</p>
+                <p className={cn("text-6xl font-bold mb-4", colorClass)}>{score}%</p>
                 <p className="text-xl text-white/90 mb-8">{message}</p>
                 <Button onClick={prepareNewSession} size="lg" className="bg-white/90 text-slate-800 hover:bg-white font-bold text-lg">
                     Main Lagi
@@ -194,6 +194,13 @@ export default function ThisOrThatPage() {
             </div>
         );
     };
+
+    // Check if both players have finished to show results
+    useEffect(() => {
+        if (questions.length > 0 && Object.keys(cipaAnswers).length === questions.length && Object.keys(jojoAnswers).length === questions.length) {
+            setGameState('results');
+        }
+    }, [cipaAnswers, jojoAnswers, questions.length]);
     
     if (gameState === 'player_select') {
         const cipaPlayed = questions.length > 0 && Object.keys(cipaAnswers).length >= questions.length;
@@ -207,7 +214,7 @@ export default function ThisOrThatPage() {
                 </div>
 
                 <div className="flex flex-col items-center animate-fade-in-scale">
-                    <h2 className="text-3xl font-bold mb-6">Siapa yang main?</h2>
+                    <h2 className="text-3xl font-bold mb-6 flex items-center gap-3"><Users/> Siapa yang main?</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Button 
                             onClick={() => startGame('cipa')} 
@@ -293,7 +300,7 @@ export default function ThisOrThatPage() {
                         </div>
                     </header>
                     
-                    <main className={cn('question-container', transitionState)}>
+                    <main className={cn('question-container', {'out': transitionState === 'out', 'in': transitionState === 'in'})}>
                         {currentQuestion && (
                             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6 md:gap-10 items-stretch">
                                 {/* Pilihan A */}
