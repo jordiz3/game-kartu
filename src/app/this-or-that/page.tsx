@@ -135,9 +135,14 @@ export default function ThisOrThatPage() {
     const startGame = () => {
         setIsFinished(false);
         setCurrentQuestionIndex(0);
+        setSelection(null);
         setShuffledQuestions(shuffleArray([...questions]));
         setAnimate(true);
     };
+
+    const restartGame = () => {
+        startGame();
+    }
 
     const loadQuestion = () => {
         setAnimate(false);
