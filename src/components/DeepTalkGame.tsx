@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -512,7 +513,7 @@ const allQuestions: Question[] = [
     { category: "Kesenangan Sederhana", question: "Apa yang akan kamu lakukan jika kita memenangkan lotre?" },
     { category: "Kesenangan Sederhana", question: "Apa hal pertama yang akan kamu selamatkan dari rumah jika terjadi kebakaran (selain orang dan hewan peliharaan)?" },
     { category: "Kesenangan Sederhana", question: "Apa nasihat terbaik yang pernah kamu berikan kepada seseorang?" },
-    { category: "Kesenangan Sederhana", question: "Apa hal yang membuatmu merasa paling damai?" },
+    { category: "Kesenangan Sederhana", question: "Apa hal yang paling membuatmu merasa paling damai?" },
     { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu rindukan dari masa sebelum pandemi?" },
     { category: "Kesenangan Sederhana", question: "Apa kebiasaan buruk yang sedang ingin kamu ubah?" },
     { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu hargai dari persahabatan kita di dalam hubungan ini?" },
@@ -748,4 +749,5 @@ export default function DeepTalkGame() {
         }
       `}</style>
     </>
-    
+  );
+}
