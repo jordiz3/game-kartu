@@ -1,320 +1,300 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Home, Check } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Home, Check, Users, Heart, Sparkles, Meh } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import Link from 'next/link';
+import { Button } from '../../components/ui/button';
+import { Progress } from '../../components/ui/progress';
 
-const questions = [
+const allQuestions = [
     // Kebiasaan & Preferensi Harian
-    { a: 'Healing ke Pantai', b: 'Nanjak Gunung' },
-    { a: 'Netflix & Chill', b: 'Nge-date Bioskop' },
-    { a: 'Masak Bareng', b: 'GoFood Aja' },
-    { a: 'Ngopi Cantik', b: 'Ngeteh Santai' },
-    { a: 'Tim Anjing', b: 'Tim Kucing' },
-    { a: 'Anak Pagi', b: 'Anak Malam' },
-    { a: 'Mandi Air Anget', b: 'Mandi Air Dingin' },
-    { a: 'OOTD Rapi', b: 'OOTD Comfy' },
-    { a: 'Tidur Gelap Gulita', b: 'Tidur Pake Lampu Remang' },
-    { a: 'KARAOKE di Mobil', b: 'Dengerin Podcast' },
+    { a: 'Healing ke Pantai', b: 'Nanjak Gunung', iconA: 'sun', iconB: 'mountain' },
+    { a: 'Netflix & Chill', b: 'Nge-date Bioskop', iconA: 'tv', iconB: 'film' },
+    { a: 'Masak Bareng', b: 'GoFood Aja', iconA: 'chef-hat', iconB: 'bike' },
+    { a: 'Ngopi Cantik', b: 'Ngeteh Santai', iconA: 'coffee', iconB: 'cup-soda' },
+    { a: 'Tim Anjing', b: 'Tim Kucing', iconA: 'dog', iconB: 'cat' },
+    { a: 'Anak Pagi', b: 'Anak Malam', iconA: 'sunrise', iconB: 'moon' },
+    { a: 'Mandi Air Anget', b: 'Mandi Air Dingin', iconA: 'thermometer', iconB: 'snowflake' },
+    { a: 'OOTD Rapi', b: 'OOTD Comfy', iconA: 'tie', iconB: 'shirt' },
+    { a: 'Tidur Gelap Gulita', b: 'Tidur Pake Lampu Remang', iconA: 'lightbulb-off', iconB: 'lightbulb' },
+    { a: 'KARAOKE di Mobil', b: 'Dengerin Podcast', iconA: 'mic', iconB: 'headphones' },
     
     // Makanan & Minuman
-    { a: 'Tim Manis', b: 'Tim Asin' },
-    { a: 'Hobi Nyari Pedes', b: 'Hobi Nyari Gurih' },
-    { a: 'Pizza Dulu', b: 'Burger Dulu' },
-    { a: 'Makan Sushi', b: 'Makan Steak' },
-    { a: 'Bubur Diaduk', b: 'Bubur Gak Diaduk' },
-    { a: 'Jajan di Luar', b: 'Masak Sendiri' },
-    { a: 'Sharing Makanan', b: 'Pesen Masing-Masing' },
-    { a: 'Fine Dining', b: 'Street Food' },
-    { a: 'Makan Es Krim', b: 'Makan Yogurt' },
-    { a: 'Minum Jus', b: 'Minum Smoothie' },
+    { a: 'Tim Manis', b: 'Tim Asin', iconA: 'cake', iconB: 'croissant' },
+    { a: 'Hobi Nyari Pedes', b: 'Hobi Nyari Gurih', iconA: 'flame', iconB: 'soup' },
+    { a: 'Pizza Dulu', b: 'Burger Dulu', iconA: 'pizza', iconB: 'hamburger' },
+    { a: 'Makan Sushi', b: 'Makan Steak', iconA: 'fish', iconB: 'beef' },
+    { a: 'Bubur Diaduk', b: 'Bubur Gak Diaduk', iconA: 'git-merge', iconB: 'git-commit' },
+    { a: 'Jajan di Luar', b: 'Masak Sendiri', iconA: 'shopping-cart', iconB: 'home' },
+    { a: 'Sharing Makanan', b: 'Pesen Masing-Masing', iconA: 'users', iconB: 'user' },
+    { a: 'Fine Dining', b: 'Street Food', iconA: 'gem', iconB: 'bus' },
+    { a: 'Makan Es Krim', b: 'Makan Yogurt', iconA: 'ice-cream', iconB: 'cookie' },
+    { a: 'Minum Jus', b: 'Minum Smoothie', iconA: 'glass-water', iconB: 'blender' },
 
     // Hiburan & Media
-    { a: 'Film Ngakak', b: 'Film Bikin Takut' },
-    { a: 'Film Baku Hantam', b: 'Film Bucin' },
-    { a: 'Musik Top 40', b: 'Musik Senja' },
-    { a: 'Nonton Konser', b: 'Nonton Teater' },
-    { a: 'Baca Buku Kertas', b: 'Baca di Gadget' },
-    { a: 'Game Kompetitif', b: 'Game Mabar Santai' },
-    { a: 'Nonton Ulang Favorit', b: 'Nonton yang Lagi Viral' },
-    { a: 'Series Barat', b: 'Drakoran' },
-    { a: 'Tim Marvel', b: 'Tim DC' },
-    { a: 'Nonton Stand-up', b: 'Nonton Sulap' },
+    { a: 'Film Ngakak', b: 'Film Bikin Takut', iconA: 'smile', iconB: 'ghost' },
+    { a: 'Film Baku Hantam', b: 'Film Bucin', iconA: 'swords', iconB: 'heart' },
+    { a: 'Musik Top 40', b: 'Musik Senja', iconA: 'radio', iconB: 'guitar' },
+    { a: 'Nonton Konser', b: 'Nonton Teater', iconA: 'music', iconB: 'drama' },
+    { a: 'Baca Buku Kertas', b: 'Baca di Gadget', iconA: 'book-open', iconB: 'tablet' },
+    { a: 'Game Kompetitif', b: 'Game Mabar Santai', iconA: 'swords', iconB: 'gamepad-2' },
+    { a: 'Nonton Ulang Favorit', b: 'Nonton yang Lagi Viral', iconA: 'history', iconB: 'trending-up' },
+    { a: 'Series Barat', b: 'Drakoran', iconA: 'clapperboard', iconB: 'captions' },
+    { a: 'Tim Marvel', b: 'Tim DC', iconA: 'shield', iconB: 'bat' },
+    { a: 'Nonton Stand-up', b: 'Nonton Sulap', iconA: 'mic-2', iconB: 'sparkles' },
 
     // Gaya Hidup & Hubungan
-    { a: 'Liburan Sultan', b: 'Liburan Low Budget' },
-    { a: 'Backpacker-an', b: 'Koper-an' },
-    { a: 'Anak Kota', b: 'Anak Desa' },
-    { a: 'Dadakan', b: 'Terencana' },
-    { a: 'Rame-rame', b: 'Circle Kecil' },
-    { a: 'Nge-date di Luar', b: 'Nge-date di Rumah' },
-    { a: 'Chattingan', b: 'Teleponan' },
-    { a: 'Panggilan "Sayang"', b: 'Panggil Nama Aja' },
-    { a: 'Tidur Nempel', b: 'Tidur Ada Jarak' },
-    { a: 'Malming Keluar', b: 'Malming di Rumah Aja' },
-
-    // Love Language & Interaksi
-    { a: 'Ngasi Kado', b: 'Dikasih Kado' },
-    { a: 'Waktu Berdua', b: 'Sentuhan Fisik' },
-    { a: 'Dikasih Semangat', b: 'Dibantuin Langsung' },
-    { a: 'Gandengan Tangan', b: 'Dirangkul' },
-    { a: 'Dikasih Kejutan', b: 'Ngerencanain Bareng' },
-    { a: 'Joget Bareng', b: 'Nyanyi Bareng' },
-    { a: 'Ngomong Langsung', b: 'Nulis Surat' },
-    { a: 'Minta Maaf Duluan', b: 'Nungguin' },
-    { a: 'Dipuji Depan Temen', b: 'Dipuji Pas Berdua' },
-    { a: 'Deep Talk', b: 'Gibah Bareng' },
+    { a: 'Liburan Sultan', b: 'Liburan Low Budget', iconA: 'gem', iconB: 'backpack' },
+    { a: 'Backpacker-an', b: 'Koper-an', iconA: 'backpack', iconB: 'briefcase' },
+    { a: 'Anak Kota', b: 'Anak Desa', iconA: 'building-2', iconB: 'tree-pine' },
+    { a: 'Dadakan', b: 'Terencana', iconA: 'zap', iconB: 'calendar' },
+    { a: 'Rame-rame', b: 'Circle Kecil', iconA: 'users', iconB: 'user-check' },
+    { a: 'Nge-date di Luar', b: 'Nge-date di Rumah', iconA: 'map', iconB: 'home' },
+    { a: 'Chattingan', b: 'Teleponan', iconA: 'message-square', iconB: 'phone' },
+    { a: 'Panggilan "Sayang"', b: 'Panggil Nama Aja', iconA: 'heart-pulse', iconB: 'user' },
+    { a: 'Tidur Nempel', b: 'Tidur Ada Jarak', iconA: 'magnet', iconB: 'move-horizontal' },
+    { a: 'Malming Keluar', b: 'Malming di Rumah Aja', iconA: 'martini', iconB: 'sofa' },
 
     // Hipotetis & Acak
-    { a: 'Bisa Terbang', b: 'Jadi Gaib' },
-    { a: 'Ke Masa Lalu', b: 'Ke Masa Depan' },
-    { a: 'Hidup Tanpa Kuota', b: 'Hidup Tanpa Musik' },
-    { a: 'Duit 100 Juta', b: '10 Sahabat Sejati' },
-    { a: 'Tahu Kapan Wafat', b: 'Tahu Kenapa Wafat' },
-    { a: 'Gerah Dikit', b: 'Kedinginan Dikit' },
-    { a: 'Hari yang Sama Terus', b: 'Lompat Setahun' },
-    { a: 'Ngobrol sama Hewan', b: 'Bisa Semua Bahasa' },
-    { a: 'Duit Gak Abis-abis', b: 'Waktu Gak Abis-abis' },
-    { a: 'Makan Itu Terus', b: 'Dengerin Lagu Itu Terus' },
-    
-    // Lebih banyak pertanyaan...
-    { a: 'Rumah Minimalis', b: 'Rumah Vintage' },
-    { a: 'Mobil Sport', b: 'Mobil Off-road' },
-    { a: 'OOTD Monokrom', b: 'OOTD Warna-warni' },
-    { a: 'Tim Sneakers', b: 'Tim Boots' },
-    { a: 'Rambut Gondrong', b: 'Rambut Cepak' },
-    { a: 'Nambah Tato', b: 'Nambah Tindik' },
-    { a: 'Vibe Musim Semi', b: 'Vibe Musim Gugur' },
-    { a: 'Suasana Hujan', b: 'Suasana Salju' },
-    { a: 'Sunrise Hunter', b: 'Sunset Hunter' },
-    { a: 'Jalan Santai', b: 'Gowes' },
-    { a: 'Main Air', b: 'Hiking' },
-    { a: 'Yoga/Pilates', b: 'Angkat Beban' },
-    { a: 'Cokelat Manis', b: 'Cokelat Pahit' },
-    { a: 'Kentang Goreng', b: 'Onion Ring' },
-    { a: 'Tim Windows', b: 'Tim Mac' },
-    { a: 'Tim Android', b: 'Tim iOS' },
-    { a: 'Scrolling Instagram', b: 'Scrolling TikTok' },
-    { a: 'WFO', b: 'WFH' },
-    { a: 'Jadi Seleb', b: 'Jadi Sultan' },
-    { a: 'Pinter', b: 'Bijak' },
-    { a: 'Jadi Leader', b: 'Jadi Tim Sukses' },
-    { a: 'Public Speaking', b: 'Nulis Konten' },
-    { a: 'Ultah Rame-rame', b: 'Ultah Intimate' },
-    { a: 'Pakai Jam Tangan', b: 'Liat HP Aja' },
-    { a: 'Tinggal di Apartemen', b: 'Tinggal di Rumah Tapak' },
-    { a: 'Banyak Kenalan', b: 'Dikit Tapi Bestie' },
-    { a: 'Jadi Fotografer', b: 'Jadi Modelnya' },
-    { a: 'Museum Seni', b: 'Museum Sains' },
-    { a: 'Naik Roller Coaster', b: 'Naik Bianglala' },
-    { a: 'Sarapan Manis', b: 'Sarapan Gurih' },
+    { a: 'Bisa Terbang', b: 'Jadi Gaib', iconA: 'bird', iconB: 'eye-off' },
+    { a: 'Ke Masa Lalu', b: 'Ke Masa Depan', iconA: 'rewind', iconB: 'fast-forward' },
+    { a: 'Hidup Tanpa Kuota', b: 'Hidup Tanpa Musik', iconA: 'wifi-off', iconB: 'music-4' },
+    { a: 'Duit 100 Juta', b: '10 Sahabat Sejati', iconA: 'banknote', iconB: 'users' },
+    { a: 'Tahu Kapan Wafat', b: 'Tahu Kenapa Wafat', iconA: 'calendar-clock', iconB: 'help-circle' },
+    { a: 'Gerah Dikit', b: 'Kedinginan Dikit', iconA: 'sun', iconB: 'snowflake' },
+    { a: 'Hari yang Sama Terus', b: 'Lompat Setahun', iconA: 'repeat', iconB: 'skip-forward' },
+    { a: 'Ngobrol sama Hewan', b: 'Bisa Semua Bahasa', iconA: 'message-circle', iconB: 'languages' },
+    { a: 'Duit Gak Abis-abis', b: 'Waktu Gak Abis-abis', iconA: 'infinity', iconB: 'timer' },
 ];
 
+type Player = 'cipa' | 'jojo' | null;
+type Answers = Record<number, 'a' | 'b'>;
+
+const SESSION_QUESTIONS = 25;
+
 export default function ThisOrThatPage() {
-    const [shuffledQuestions, setShuffledQuestions] = useState<{a: string, b: string}[]>([]);
+    const [questions, setQuestions] = useState<{a: string; b: string}[]>([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const [selection, setSelection] = useState<'a' | 'b' | null>(null);
-    const [isFinished, setIsFinished] = useState(false);
-    const [animate, setAnimate] = useState(false);
-    const gameAreaRef = useRef<HTMLDivElement>(null);
-    const choiceARef = useRef<HTMLDivElement>(null);
-    const choiceBRef = useRef<HTMLDivElement>(null);
+    const [cipaAnswers, setCipaAnswers] = useState<Answers>({});
+    const [jojoAnswers, setJojoAnswers] = useState<Answers>({});
+    const [activePlayer, setActivePlayer] = useState<Player>(null);
+    const [gameState, setGameState] = useState<'player_select' | 'playing' | 'results'>('player_select');
+    const [transitionState, setTransitionState] = useState<'in' | 'out' | null>(null);
 
+    const shuffleAndTake = (array: any[], num: number) => {
+        const shuffled = [...array].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, num);
+    };
 
-    const shuffleArray = (array: any[]) => {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    const startGame = (player: Player) => {
+        if (gameState === 'player_select') {
+            const newQuestions = shuffleAndTake(allQuestions, SESSION_QUESTIONS);
+            setQuestions(newQuestions);
+            setCipaAnswers({});
+            setJojoAnswers({});
         }
-        return array;
-    }
-
-    const startGame = () => {
-        setIsFinished(false);
+        setActivePlayer(player);
+        setGameState('playing');
         setCurrentQuestionIndex(0);
-        setSelection(null);
-        setShuffledQuestions(shuffleArray([...questions]));
-        setAnimate(true);
+        setTransitionState('in');
     };
 
-    const restartGame = () => {
-        startGame();
-    }
+    const handleChoice = (choice: 'a' | 'b') => {
+        if (transitionState) return;
 
-    const loadQuestion = () => {
-        setAnimate(false);
-        setSelection(null);
-        if (currentQuestionIndex >= shuffledQuestions.length) {
-            setIsFinished(true);
-        } else {
-            setTimeout(() => setAnimate(true), 50); 
+        setTransitionState('out');
+
+        if (activePlayer === 'cipa') {
+            setCipaAnswers(prev => ({ ...prev, [currentQuestionIndex]: choice }));
+        } else if (activePlayer === 'jojo') {
+            setJojoAnswers(prev => ({ ...prev, [currentQuestionIndex]: choice }));
         }
-    };
-    
-    const handleChoice = (selectedChoice: 'a' | 'b') => {
-        if (isTransitioning) return;
-        
-        setIsTransitioning(true);
-        setSelection(selectedChoice);
 
         setTimeout(() => {
-            setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-            setIsTransitioning(false);
-        }, 1000); 
+            if (currentQuestionIndex < questions.length - 1) {
+                setCurrentQuestionIndex(prev => prev + 1);
+                setTransitionState('in');
+            } else {
+                if (activePlayer === 'cipa' && Object.keys(jojoAnswers).length < questions.length) {
+                    setGameState('player_select');
+                    setActivePlayer(null); // Force player selection screen
+                } else if (activePlayer === 'jojo' && Object.keys(cipaAnswers).length < questions.length) {
+                    setGameState('player_select');
+                    setActivePlayer(null); // Force player selection screen
+                } else {
+                    setGameState('results');
+                }
+            }
+        }, 500);
     };
     
-    useEffect(() => {
-        startGame();
-    }, []);
-
-    useEffect(() => {
-        if (!isTransitioning) {
-            loadQuestion();
+    const compatibilityScore = useMemo(() => {
+        if (gameState !== 'results') return 0;
+        let sameAnswers = 0;
+        const totalQuestions = Math.min(Object.keys(cipaAnswers).length, Object.keys(jojoAnswers).length, questions.length);
+        if (totalQuestions === 0) return 0;
+        
+        for (let i = 0; i < totalQuestions; i++) {
+            if (cipaAnswers[i] && cipaAnswers[i] === jojoAnswers[i]) {
+                sameAnswers++;
+            }
         }
-    }, [currentQuestionIndex]);
+        return Math.round((sameAnswers / totalQuestions) * 100);
+    }, [gameState, cipaAnswers, jojoAnswers, questions.length]);
 
-    const currentQuestion = shuffledQuestions[currentQuestionIndex];
+    const progress = Math.round(((currentQuestionIndex + 1) / questions.length) * 100);
+
+    const ResultDisplay = () => {
+        let Icon = Meh;
+        let message = "Kalian masih dalam tahap penjajakan!";
+        let colorClass = "text-yellow-400";
+
+        if (compatibilityScore >= 80) {
+            Icon = Heart;
+            message = "Sehati banget! Kalian emang jodoh!";
+            colorClass = "text-red-400";
+        } else if (compatibilityScore >= 50) {
+            Icon = Sparkles;
+            message = "Cukup sefrekuensi! Banyak kesamaan di antara kalian.";
+            colorClass = "text-cyan-400";
+        }
+
+        return (
+            <div className="flex flex-col items-center justify-center text-center p-8 bg-black/30 rounded-3xl backdrop-blur-sm border border-white/20 animate-fade-in-scale">
+                <h2 className="text-2xl font-bold text-white/80 mb-2">Hasil Kekompakan</h2>
+                <Icon className={cn("w-24 h-24 my-4", colorClass)} strokeWidth={1.5} />
+                <p className={cn("text-6xl font-bold mb-4", colorClass)}>{compatibilityScore}%</p>
+                <p className="text-xl text-white/90 mb-8">{message}</p>
+                <Button onClick={() => setGameState('player_select')} size="lg" className="bg-white/90 text-slate-800 hover:bg-white font-bold text-lg">
+                    Main Lagi
+                </Button>
+            </div>
+        );
+    };
+    
+    if (gameState === 'player_select') {
+        const cipaPlayed = Object.keys(cipaAnswers).length > 0;
+        const jojoPlayed = Object.keys(jojoAnswers).length > 0;
+
+        return (
+             <div className="cosmic-bg min-h-screen flex flex-col items-center justify-center p-4 text-white">
+                <div className="text-center mb-12 animate-fade-in">
+                    <h1 className="font-display text-5xl md:text-6xl font-bold" style={{textShadow: '0 0 15px rgba(255,255,255,0.3)'}}>This or That</h1>
+                    <p className="text-white/80 text-lg mt-2">Seberapa sefrekuensi kalian?</p>
+                </div>
+
+                <div className="flex flex-col items-center animate-fade-in-scale">
+                    <h2 className="text-3xl font-bold mb-6">Siapa yang main?</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Button 
+                            onClick={() => startGame('cipa')} 
+                            disabled={cipaPlayed && !jojoPlayed}
+                            className={cn("player-select-btn h-auto p-8 border-2 bg-pink-500/20 border-pink-400 hover:bg-pink-500/40", {'opacity-50 cursor-not-allowed': cipaPlayed && !jojoPlayed})}>
+                            <div className="flex flex-col items-center">
+                                <span className="text-4xl mb-2">🌸</span>
+                                <span className="text-2xl font-bold">Cipa</span>
+                                {cipaPlayed && <span className="text-xs mt-1">(Sudah Main)</span>}
+                            </div>
+                        </Button>
+                        <Button 
+                            onClick={() => startGame('jojo')}
+                            disabled={jojoPlayed && !cipaPlayed}
+                            className={cn("player-select-btn h-auto p-8 border-2 bg-blue-500/20 border-blue-400 hover:bg-blue-500/40", {'opacity-50 cursor-not-allowed': jojoPlayed && !cipaPlayed})}>
+                             <div className="flex flex-col items-center">
+                                <span className="text-4xl mb-2">⭐</span>
+                                <span className="text-2xl font-bold">Jojo</span>
+                                {jojoPlayed && <span className="text-xs mt-1">(Sudah Main)</span>}
+                            </div>
+                        </Button>
+                    </div>
+                </div>
+                 <Link href="/" className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-2 mt-16">
+                    <Home size={16}/> Kembali ke Menu Utama
+                </Link>
+             </div>
+        )
+    }
+
+    if (gameState === 'results') {
+        return (
+            <div className="cosmic-bg min-h-screen flex flex-col items-center justify-center p-4 text-white">
+                <ResultDisplay />
+                 <Link href="/" className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-2 mt-12">
+                    <Home size={16}/> Kembali ke Menu Utama
+                </Link>
+            </div>
+        )
+    }
+
+    const currentQuestion = questions[currentQuestionIndex];
 
     return (
         <>
             <style jsx>{`
-                .gradient-bg {
-                    background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
-                    background-size: 400% 400%;
-                    animation: gradient-animation 15s ease infinite;
+                .cosmic-bg {
+                    background: linear-gradient(225deg, #0f0c29, #302b63, #24243e);
                 }
-                @keyframes gradient-animation {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                @keyframes pulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.1); }
-                }
-                .choice-card {
-                    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-                    cursor: pointer;
-                    position: relative;
+                .choice-glow-a { box-shadow: 0 0 20px #f472b6, 0 0 40px #f472b6; }
+                .choice-glow-b { box-shadow: 0 0 20px #60a5fa, 0 0 40px #60a5fa; }
+                .player-select-btn { transition: transform 0.2s, box-shadow 0.2s; }
+                .player-select-btn:hover:not(:disabled) { transform: translateY(-5px) scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+                @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+                .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+                
+                @keyframes fade-in-scale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+                .animate-fade-in-scale { animation: fade-in-scale 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+
+                .question-card {
+                    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s;
                     transform-style: preserve-3d;
                 }
+                .question-card.out { transform: rotateY(90deg) scale(0.9); opacity: 0; }
+                .question-card.in { transform: rotateY(0deg) scale(1); opacity: 1; }
+
+                .choice-card {
+                    transition: transform 0.3s, box-shadow 0.3s;
+                }
                 .choice-card:hover {
-                    transform: scale(1.05) rotateY(5deg) rotateX(5deg);
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
-                }
-                .choice-card.selected {
-                    transform: scale(1.1) !important;
-                    opacity: 1 !important;
-                    box-shadow: 0 0 40px rgba(255, 255, 255, 0.8);
-                }
-                .choice-card.not-selected {
-                    transform: scale(0.9);
-                    opacity: 0.5;
-                    filter: grayscale(80%);
-                }
-                .game-container {
-                    perspective: 1500px;
-                }
-                .question-transition {
-                    animation: flipIn 0.6s forwards;
-                }
-                @keyframes flipIn {
-                    from {
-                        transform: rotateX(-90deg) scale(0.9);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: rotateX(0deg) scale(1);
-                        opacity: 1;
-                    }
-                }
-                .choice-text {
-                    transition: opacity 0.2s ease-in-out;
-                }
-                .checkmark {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) scale(0.5);
-                    opacity: 0;
-                    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    font-size: 6rem;
-                    color: white;
-                    text-shadow: 0 0 20px rgba(0,0,0,0.3);
-                }
-                .choice-card.selected .choice-text {
-                    opacity: 0;
-                }
-                .choice-card.selected .checkmark {
-                    opacity: 1;
-                    transform: translate(-50%, -50%) scale(1);
-                }
-                .or-separator {
-                    animation: pulse 2s infinite;
+                    transform: scale(1.03);
                 }
             `}</style>
-            <div className="gradient-bg min-h-screen flex flex-col items-center justify-center p-4">
-                 <div className="game-container w-full max-w-4xl text-center">
-                    <header className="mb-10">
-                        <h1 className="font-display text-4xl md:text-5xl font-bold text-white" style={{textShadow: '2px 2px 10px rgba(0,0,0,0.2)'}}>This or That</h1>
-                        <p className="text-white/80 text-lg mt-2">Edisi Pasangan</p>
+            <div className="cosmic-bg min-h-screen flex flex-col items-center justify-center p-4 text-white overflow-hidden">
+                 <div className="w-full max-w-5xl">
+                    <header className="text-center mb-8">
+                        <p className="text-lg text-white/80">Giliran: <span className={cn("font-bold", activePlayer === 'cipa' ? 'text-pink-400' : 'text-blue-400')}>{activePlayer === 'cipa' ? 'Cipa' : 'Jojo'}</span></p>
+                        <h1 className="font-display text-2xl md:text-3xl font-bold mt-1 text-white/90">
+                           Pertanyaan {currentQuestionIndex + 1} dari {questions.length}
+                        </h1>
+                        <div className="w-full max-w-md mx-auto mt-4">
+                           <Progress value={progress} className="h-2 bg-white/20 [&>div]:bg-gradient-to-r [&>div]:from-pink-400 [&>div]:to-blue-400"/>
+                        </div>
                     </header>
                     
-                    {!isFinished ? (
-                         <main ref={gameAreaRef} className={cn('min-h-[350px] md:min-h-[400px]', { 'question-transition': animate })}>
-                            {currentQuestion && (
-                                <div id="question-box" className="flex flex-col md:flex-row gap-6 md:gap-10 items-center">
-                                    <div 
-                                        ref={choiceARef}
-                                        onClick={() => handleChoice('a')}
-                                        className={cn('choice-card w-full h-64 md:h-80 flex items-center justify-center p-6 rounded-3xl shadow-lg border-2 border-white/50', {
-                                            'selected': selection === 'a',
-                                            'not-selected': selection === 'b'
-                                        })} 
-                                        style={{background: 'linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)'}}
-                                    >
-                                        <h2 className="choice-text font-display text-3xl md:text-4xl text-white font-bold">{currentQuestion.a}</h2>
-                                        <div className="checkmark"><Check strokeWidth={2} size={96} /></div>
-                                    </div>
-                                    
-                                    <div className="flex items-center justify-center">
-                                        <span className="or-separator font-display text-2xl font-bold text-white">ATAU</span>
-                                    </div>
-
-                                    <div 
-                                        ref={choiceBRef}
-                                        onClick={() => handleChoice('b')}
-                                        className={cn('choice-card w-full h-64 md:h-80 flex items-center justify-center p-6 rounded-3xl shadow-lg border-2 border-white/50', {
-                                            'selected': selection === 'b',
-                                            'not-selected': selection === 'a'
-                                        })}
-                                        style={{background: 'linear-gradient(135deg, #6a82fb 0%, #fc5c7d 100%)'}}
-                                    >
-                                        <h2 className="choice-text font-display text-3xl md:text-4xl text-white font-bold">{currentQuestion.b}</h2>
-                                        <div className="checkmark"><Check strokeWidth={2} size={96} /></div>
-                                    </div>
-                                </div>
-                            )}
-                        </main>
-                    ) : null}
-
-                    <footer className="mt-10 h-24">
-                        {!isFinished ? (
-                            <p className="text-white/80 font-semibold">
-                                Pertanyaan {Math.min(currentQuestionIndex + 1, shuffledQuestions.length)} dari {shuffledQuestions.length}
-                            </p>
-                        ) : (
-                            <div className="question-transition">
-                                <p className="text-white text-xl mb-4">Game over! Kalian emang se-frekuensi!</p>
-                                <button onClick={restartGame} className="bg-white text-pink-500 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-110">
-                                   Main Lagi Kuy
+                    <main className={cn('question-card', transitionState)}>
+                        {currentQuestion && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-stretch">
+                                {/* Pilihan A */}
+                                <button
+                                    onClick={() => handleChoice('a')}
+                                    className="choice-card group p-8 rounded-3xl flex flex-col items-center justify-center text-center bg-black/20 border border-white/10 hover:border-pink-400/80 hover:choice-glow-a">
+                                    <h2 className="text-3xl md:text-4xl font-bold text-white/90 group-hover:text-white">{currentQuestion.a}</h2>
                                 </button>
-                           </div>
+                                
+                                {/* Pilihan B */}
+                                <button
+                                    onClick={() => handleChoice('b')}
+                                    className="choice-card group p-8 rounded-3xl flex flex-col items-center justify-center text-center bg-black/20 border border-white/10 hover:border-blue-400/80 hover:choice-glow-b">
+                                    <h2 className="text-3xl md:text-4xl font-bold text-white/90 group-hover:text-white">{currentQuestion.b}</h2>
+                                </button>
+                            </div>
                         )}
-                         <Link href="/" className="text-white hover:underline inline-flex items-center gap-2 mt-8">
+                    </main>
+
+                     <footer className="mt-12 text-center">
+                        <Link href="/" className="text-white/70 hover:text-white transition-colors inline-flex items-center gap-2">
                             <Home size={16}/> Kembali ke Menu Utama
                         </Link>
                     </footer>
@@ -323,3 +303,4 @@ export default function ThisOrThatPage() {
         </>
     );
 }
+
