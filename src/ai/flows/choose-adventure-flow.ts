@@ -30,7 +30,7 @@ export async function continueAdventure(input: AdventureInput): Promise<Adventur
 
 const prompt = ai.definePrompt({
   name: 'chooseAdventurePrompt',
-  model: googleAI.model('gemini-2.0-flash'),
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: { schema: AdventureInputSchema },
   output: { schema: AdventureOutputSchema },
   prompt: `You are a creative and imaginative storyteller crafting a romantic fantasy adventure for a couple, Cipa and Jojo. They are the main characters of this story.
