@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -526,7 +527,7 @@ const allQuestions: Question[] = [
     { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu nikmati dari kesendirian?" },
     { category: "Kesenangan Sederhana", question: "Apa yang membuatmu merasa paling berenergi?" },
     { category: "Kesenangan Sederhana", question: "Apa hal yang paling ingin kamu otomatisasi dalam hidupmu?" },
-    { category: "Kesenangan Sederhana", question: "Apa yang paling kamu hargai dari teknologi?" },
+    { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu hargai dari teknologi?" },
     { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu benci dari teknologi?" },
     { category: "Kesenangan Sederhana", question: "Apa yang kamu pikirkan tentang media sosial?" },
     { category: "Kesenangan Sederhana", question: "Apa yang membuatmu merasa paling terinspirasi?" },
@@ -558,6 +559,8 @@ export default function DeepTalkGame() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
 
   const selectCategory = (category: string) => {
     if (category === 'Acak Semua') {
@@ -568,31 +571,19 @@ export default function DeepTalkGame() {
       setGameTitle(`Kategori: ${category}`);
     }
     setGameState('game');
-    // Reset dan langsung ambil kartu pertama
-    resetCard(true);
+    // We will let the useEffect hook handle drawing the first card
   };
 
   const showCategorySelection = () => {
     setGameState('category');
-    resetCard(false);
-  };
-
-  const resetCard = (drawFirstCard: boolean) => {
     setIsFlipped(false);
-    setLastQuestionIndex(-1);
-    setTimeout(() => {
-        setCurrentQuestion(null);
-        if (drawFirstCard) {
-            drawCard(true);
-        }
-    }, 300);
+    setCurrentQuestion(null);
   };
   
-  const drawCard = (isFirstDraw = false) => {
-    if (currentQuestions.length === 0) {
-      setCurrentQuestion({ category: 'Selesai', question: 'Tidak ada lagi pertanyaan di kategori ini.' });
-      return;
-    }
+  const drawCard = () => {
+    if (isAnimating || currentQuestions.length === 0) return;
+
+    setIsAnimating(true);
   
     let randomIndex;
     if (currentQuestions.length === 1) {
@@ -604,28 +595,39 @@ export default function DeepTalkGame() {
     }
   
     setLastQuestionIndex(randomIndex);
-    const selectedQuestion = currentQuestions[randomIndex];
-  
-    const updateText = () => {
-      setCurrentQuestion(selectedQuestion);
-    };
-  
-    if (!isFlipped || isFirstDraw) {
-      setTimeout(updateText, 200);
-      setIsFlipped(true);
-    } else {
+    const nextQuestion = currentQuestions[randomIndex];
+
+    const flipOut = () => {
       setIsFlipped(false);
-      setTimeout(() => {
-        updateText();
-        setIsFlipped(true);
-      }, 600);
+      // Wait for flip-out animation to finish
+      setTimeout(flipIn, 300); 
+    };
+
+    const flipIn = () => {
+      setCurrentQuestion(nextQuestion);
+      setIsFlipped(true);
+       // Wait for flip-in animation to finish
+      setTimeout(() => setIsAnimating(false), 600);
+    };
+
+    if (isFlipped) {
+      // If card is already flipped, flip it back first
+      flipOut();
+    } else {
+      // If it's the first draw, just flip in
+      flipIn();
     }
   };
 
 
   useEffect(() => {
+    // Automatically draw the first card when entering the game screen
     if(gameState === 'game' && currentQuestions.length > 0 && !currentQuestion) {
-        drawCard(true);
+        // A small delay to allow the screen to transition smoothly
+        const timer = setTimeout(() => {
+            drawCard();
+        }, 100);
+        return () => clearTimeout(timer);
     }
   }, [gameState, currentQuestions, currentQuestion]);
 
@@ -633,15 +635,15 @@ export default function DeepTalkGame() {
   return (
     <>
       {/* Layar Pemilihan Kategori */}
-      <div className={cn("w-full max-w-lg text-center", { 'hidden': gameState !== 'category' })}>
-        <h1 className="font-handwriting text-4xl md:text-5xl text-gray-800">Pilih Kategori</h1>
+      <div className={cn("w-full max-w-lg text-center transition-opacity duration-300", { 'hidden': gameState !== 'category', 'opacity-100': gameState === 'category', 'opacity-0': gameState !== 'category' })}>
+        <h1 className="font-display text-4xl md:text-5xl text-gray-800">Pilih Kategori</h1>
         <p className="text-gray-600 mt-2 mb-8">Pilih topik untuk memulai percakapan.</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {uniqueCategories.map(category => (
             <button
               key={category}
               onClick={() => selectCategory(category)}
-              className="category-btn bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all duration-200 ease-in-out hover:scale-105 hover:bg-indigo-700"
+              className="category-btn bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md"
             >
               {category}
             </button>
@@ -650,9 +652,9 @@ export default function DeepTalkGame() {
       </div>
 
       {/* Layar Game Utama */}
-      <div className={cn("w-full flex flex-col items-center justify-center", { 'hidden': gameState !== 'game' })}>
+      <div className={cn("w-full flex flex-col items-center justify-center transition-opacity duration-300", { 'hidden': gameState !== 'game', 'opacity-100': gameState === 'game', 'opacity-0': gameState !== 'game'  })}>
         <div className="text-center mb-8">
-          <h1 className="font-handwriting text-4xl md:text-5xl text-gray-800">{gameTitle}</h1>
+          <h1 className="font-display text-4xl md:text-5xl text-gray-800">{gameTitle}</h1>
           <p className="text-gray-600 mt-2">Ambil kartu untuk memulai percakapan.</p>
         </div>
 
@@ -660,34 +662,35 @@ export default function DeepTalkGame() {
         <div style={{ perspective: '1000px' }} className="w-full max-w-md h-80 md:h-96">
           <div
             className={cn(
-              "relative w-full h-full rounded-2xl shadow-lg transition-transform duration-600",
-              { 'card-flip': isFlipped }
+              "card-element relative w-full h-full rounded-2xl shadow-lg",
+              { 'is-flipped': isFlipped }
             )}
-            style={{ transformStyle: 'preserve-3d', boxShadow: '0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1)' }}
           >
             {/* Sisi Depan Kartu */}
-            <div className="card-face absolute w-full h-full bg-white rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+            <div className="card-face card-front absolute w-full h-full bg-white rounded-2xl flex flex-col items-center justify-center p-6 text-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-red-300 mb-4" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
               </svg>
-              <h2 className="font-handwriting text-2xl text-gray-700">Siap Terhubung?</h2>
-              <p className="text-gray-500 mt-2">Klik tombol di bawah untuk mengambil kartu pertama Anda.</p>
+              <h2 className="font-display text-2xl text-gray-700">Siap Terhubung?</h2>
+              <p className="text-gray-500 mt-2">Klik tombol di bawah untuk mengambil kartu.</p>
             </div>
 
             {/* Sisi Belakang Kartu */}
             <div className="card-face card-back absolute w-full h-full bg-white rounded-2xl flex flex-col items-center justify-between p-6 md:p-8 text-center">
-               {currentQuestion && (
-                <>
-                    <div className="absolute top-4 left-4 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full">
-                        {currentQuestion.category}
-                    </div>
-                    <div className="flex-grow flex items-center">
-                        <p className="text-xl md:text-2xl text-gray-800 leading-relaxed">
-                        {currentQuestion.question}
-                        </p>
-                    </div>
-                </>
-               )}
+               <div className={cn("transition-opacity duration-300", { 'opacity-0': !isFlipped, 'opacity-100': isFlipped })}>
+                  {currentQuestion && (
+                    <>
+                        <div className="absolute top-4 left-4 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+                            {currentQuestion.category}
+                        </div>
+                        <div className="flex-grow flex items-center justify-center h-full">
+                            <p className="text-xl md:text-2xl text-gray-800 leading-relaxed px-4">
+                            {currentQuestion.question}
+                            </p>
+                        </div>
+                    </>
+                  )}
+               </div>
             </div>
           </div>
         </div>
@@ -696,20 +699,39 @@ export default function DeepTalkGame() {
         <div className="flex space-x-4 mt-8">
           <button
             onClick={showCategorySelection}
-            className="btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl"
+            disabled={isAnimating}
+            className="btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Ganti Kategori
           </button>
           <button
-            onClick={() => drawCard(false)}
-            className="btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-md transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl"
+            onClick={drawCard}
+            disabled={isAnimating}
+            className="btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Ambil Kartu
+            {isAnimating ? '...' : 'Ambil Kartu'}
           </button>
         </div>
       </div>
       <style jsx>{`
-        .card-flip {
+        .btn {
+            transition: all 0.3s ease-in-out;
+        }
+        .btn:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .category-btn {
+             transition: all 0.2s ease-in-out;
+        }
+        .category-btn:hover {
+            transform: scale(1.05);
+        }
+        .card-element {
+          transform-style: preserve-3d;
+          transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .card-element.is-flipped {
           transform: rotateY(180deg);
         }
         .card-face {
