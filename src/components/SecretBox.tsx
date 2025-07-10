@@ -311,6 +311,10 @@ export default function SecretBox() {
         <Link href="/deep-talk" className="text-pink-500 hover:underline">
           Main Kartu Deep Talk 🎴
         </Link>
+        <span className="mx-2 text-gray-400">|</span>
+        <Link href="/truth-or-dare" className="text-pink-500 hover:underline">
+          Main Truth or Dare 🔥
+        </Link>
       </footer>
     </div>
   );

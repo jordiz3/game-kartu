@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Poppins, Caveat, Playfair_Display } from 'next/font/google';
+import { Poppins, Caveat, Playfair_Display, Nunito } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster"
@@ -22,6 +22,12 @@ const playfairDisplay = Playfair_Display({
   variable: '--font-playfair-display',
 });
 
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  variable: '--font-nunito',
+});
+
 
 export const metadata: Metadata = {
   title: 'Kotak Rahasia - Cipa & Jojo',
@@ -35,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={cn('antialiased', poppins.variable, caveat.variable, playfairDisplay.variable)}>
+      <body className={cn('antialiased', poppins.variable, caveat.variable, playfairDisplay.variable, nunito.variable)}>
         {children}
         <Toaster />
       </body>
