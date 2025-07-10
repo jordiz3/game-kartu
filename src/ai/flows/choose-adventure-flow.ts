@@ -9,6 +9,7 @@
 
 import { ai } from '../genkit';
 import { z } from 'zod';
+import { googleAI } from '@genkit-ai/googleai';
 
 const AdventureInputSchema = z.object({
   previousStory: z.string().describe('Bagian cerita sebelumnya. Untuk memulai, gunakan "Mulai Petualangan".'),
@@ -29,6 +30,7 @@ export async function continueAdventure(input: AdventureInput): Promise<Adventur
 
 const prompt = ai.definePrompt({
   name: 'chooseAdventurePrompt',
+  model: googleAI.model('gemini-pro'),
   input: { schema: AdventureInputSchema },
   output: { schema: AdventureOutputSchema },
   prompt: `You are a creative and imaginative storyteller crafting a romantic fantasy adventure for a couple, Cipa and Jojo. They are the main characters of this story.
