@@ -1,6 +1,7 @@
 {
   "apphosting": {
     "backendId": "game-kartu",
+    "site": "wishlist-date-app-1440c",
     "rootDir": "/",
     "ignore": [
       "node_modules",
