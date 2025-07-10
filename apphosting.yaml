@@ -1,6 +1,8 @@
+# Explicitly declare the backend ID for Firebase App Hosting
+backendId: game-kartu
+
 # Settings for Backend (on Cloud Run).
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
-backendId: game-kartu
 runConfig:
   minInstances: 0
   # maxInstances: 100
