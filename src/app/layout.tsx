@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Poppins, Caveat, Playfair_Display, Nunito } from 'next/font/google';
 import './globals.css';
-import { cn } from '@/lib/utils';
-import { Toaster } from "@/components/ui/toaster"
+import { cn } from '../lib/utils';
+import { Toaster } from "../components/ui/toaster"
 
 const poppins = Poppins({
   subsets: ['latin'],
