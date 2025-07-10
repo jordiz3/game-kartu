@@ -7,8 +7,21 @@ import { Home, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useToast } from '../../hooks/use-toast';
-import { continueAdventure, AdventureOutput } from '../../ai/flows/choose-adventure-flow';
+import { continueAdventure } from '../../ai/flows/choose-adventure-flow';
 import { cn } from '../../lib/utils';
+
+// Types moved here to comply with 'use server' constraints
+export type AdventureInput = {
+  previousStory: string;
+  choice: string;
+};
+
+export type AdventureOutput = {
+  storySegment: string;
+  choiceA: string;
+  choiceB: string;
+};
+
 
 const INITIAL_PROMPT = 'Mulai Petualangan';
 const INITIAL_CHOICE = 'Mulai';
@@ -125,13 +138,13 @@ export default function ChooseAdventurePage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Button onClick={() => handleMakeChoice(story.choiceA)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-3">
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center justify-center text-center gap-2">
                                 {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
                                 {story.choiceA}
                             </span>
                         </Button>
                         <Button onClick={() => handleMakeChoice(story.choiceB)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-3">
-                             <span className="flex items-center gap-2">
+                             <span className="flex items-center justify-center text-center gap-2">
                                 {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
                                 {story.choiceB}
                              </span>

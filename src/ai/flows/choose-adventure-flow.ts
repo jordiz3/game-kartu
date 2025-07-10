@@ -1,28 +1,29 @@
+
 'use server';
 /**
  * @fileOverview Flow AI untuk game petualangan interaktif "Pilih Sendiri Jalanmu".
  *
  * - continueAdventure - Fungsi yang melanjutkan cerita berdasarkan pilihan pengguna.
- * - AdventureInput - Tipe input untuk fungsi continueAdventure.
- * - AdventureOutput - Tipe output untuk fungsi continueAdventure.
  */
 
 import { ai } from '../genkit';
 import { z } from 'zod';
 import { googleAI } from '@genkit-ai/googleai';
 
+// Definisikan tipe input dan output di sini, tetapi jangan diekspor
+type AdventureInput = z.infer<typeof AdventureInputSchema>;
+type AdventureOutput = z.infer<typeof AdventureOutputSchema>;
+
 const AdventureInputSchema = z.object({
   previousStory: z.string().describe('Bagian cerita sebelumnya. Untuk memulai, gunakan "Mulai Petualangan".'),
   choice: z.string().describe('Pilihan yang dibuat oleh pemain dari bagian cerita sebelumnya. Untuk memulai, gunakan "Mulai".'),
 });
-export type AdventureInput = z.infer<typeof AdventureInputSchema>;
 
 const AdventureOutputSchema = z.object({
   storySegment: z.string().describe('Paragraf kelanjutan cerita yang menarik, ditulis dalam Bahasa Indonesia.'),
   choiceA: z.string().describe('Pilihan pertama yang tersedia untuk pemain.'),
   choiceB: z.string().describe('Pilihan kedua yang tersedia untuk pemain.'),
 });
-export type AdventureOutput = z.infer<typeof AdventureOutputSchema>;
 
 export async function continueAdventure(input: AdventureInput): Promise<AdventureOutput> {
   return adventureFlow(input);
