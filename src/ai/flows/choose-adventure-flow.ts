@@ -10,13 +10,13 @@
 import { ai } from '../genkit';
 import { z } from 'zod';
 
-export const AdventureInputSchema = z.object({
+const AdventureInputSchema = z.object({
   previousStory: z.string().describe('Bagian cerita sebelumnya. Untuk memulai, gunakan "Mulai Petualangan".'),
   choice: z.string().describe('Pilihan yang dibuat oleh pemain dari bagian cerita sebelumnya. Untuk memulai, gunakan "Mulai".'),
 });
 export type AdventureInput = z.infer<typeof AdventureInputSchema>;
 
-export const AdventureOutputSchema = z.object({
+const AdventureOutputSchema = z.object({
   storySegment: z.string().describe('Paragraf kelanjutan cerita yang menarik, ditulis dalam Bahasa Indonesia.'),
   choiceA: z.string().describe('Pilihan pertama yang tersedia untuk pemain.'),
   choiceB: z.string().describe('Pilihan kedua yang tersedia untuk pemain.'),
