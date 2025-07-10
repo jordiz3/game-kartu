@@ -123,11 +123,11 @@ export default function ChooseAdventurePage() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Button onClick={() => handleMakeChoice(story.choiceA)} disabled={isLoading} size="lg" className="choice-button h-auto py-4">
+                        <Button onClick={() => handleMakeChoice(story.choiceA)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-4 flex items-center justify-center">
                             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                             {story.choiceA}
                         </Button>
-                        <Button onClick={() => handleMakeChoice(story.choiceB)} disabled={isLoading} size="lg" className="choice-button h-auto py-4">
+                        <Button onClick={() => handleMakeChoice(story.choiceB)} disabled={isLoading} size="lg" className="choice-button h-auto min-h-[68px] py-4 flex items-center justify-center">
                             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                             {story.choiceB}
                         </Button>
@@ -160,6 +160,7 @@ export default function ChooseAdventurePage() {
                 color: white;
                 white-space: normal;
                 line-height: 1.4;
+                text-align: center;
                 transition: all 0.2s ease-in-out;
             }
             .choice-button:hover:not(:disabled) {
