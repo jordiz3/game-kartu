@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Home, Heart, Sparkles, Meh } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import Link from 'next/link';
@@ -87,26 +87,34 @@ export default function ThisOrThatPage() {
         const shuffled = [...array].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, num);
     };
-    
-    const resetForNewSession = () => {
+
+    const prepareNewSession = () => {
         const newQuestions = shuffleAndTake(allQuestions, SESSION_QUESTIONS);
         setQuestions(newQuestions);
         setCipaAnswers({});
         setJojoAnswers({});
         setCurrentQuestionIndex(0);
-        setGameState('player_select');
+        return newQuestions;
     };
+    
+    useEffect(() => {
+        // Prepare questions on initial load
+        if (questions.length === 0) {
+            setQuestions(shuffleAndTake(allQuestions, SESSION_QUESTIONS));
+        }
+    }, [questions.length]);
+
 
     const startGame = (player: Player) => {
+        let sessionQuestions = questions;
+        const cipaDone = Object.keys(cipaAnswers).length >= sessionQuestions.length;
+        const jojoDone = Object.keys(jojoAnswers).length >= sessionQuestions.length;
+
         // If both players have played, start a completely new session.
-        if (Object.keys(cipaAnswers).length >= questions.length && Object.keys(jojoAnswers).length >= questions.length) {
-            const newQuestions = shuffleAndTake(allQuestions, SESSION_QUESTIONS);
-            setQuestions(newQuestions);
-            setCipaAnswers({});
-            setJojoAnswers({});
-        } else if (questions.length === 0) {
-            const newQuestions = shuffleAndTake(allQuestions, SESSION_QUESTIONS);
-            setQuestions(newQuestions);
+        if (cipaDone && jojoDone) {
+            sessionQuestions = prepareNewSession();
+        } else if (sessionQuestions.length === 0) {
+            sessionQuestions = prepareNewSession();
         }
 
         setActivePlayer(player);
@@ -131,17 +139,16 @@ export default function ThisOrThatPage() {
                 setCurrentQuestionIndex(prev => prev + 1);
                 setTransitionState('in');
             } else {
-                // Last question answered, check if other player needs to play or show results
                 const cipaDone = Object.keys(cipaAnswers).length === questions.length || (activePlayer === 'cipa');
                 const jojoDone = Object.keys(jojoAnswers).length === questions.length || (activePlayer === 'jojo');
 
                 if (cipaDone && jojoDone) {
                     setGameState('results');
                 } else {
-                    setGameState('player_select'); // Go back to player select for the other player
+                    setGameState('player_select');
                 }
             }
-        }, 500); // Wait for animation
+        }, 500); 
     };
     
     const compatibilityScore = useMemo(() => {
@@ -158,7 +165,7 @@ export default function ThisOrThatPage() {
         return Math.round((sameAnswers / totalQuestions) * 100);
     }, [gameState, cipaAnswers, jojoAnswers, questions.length]);
 
-    const progress = Math.round(((currentQuestionIndex + 1) / questions.length) * 100);
+    const progress = questions.length > 0 ? Math.round(((currentQuestionIndex + 1) / questions.length) * 100) : 0;
 
     const ResultDisplay = () => {
         let Icon = Meh;
@@ -181,7 +188,7 @@ export default function ThisOrThatPage() {
                 <Icon className={cn("w-24 h-24 my-4", colorClass)} strokeWidth={1.5} />
                 <p className={cn("text-6xl font-bold mb-4", colorClass)}>{compatibilityScore}%</p>
                 <p className="text-xl text-white/90 mb-8">{message}</p>
-                <Button onClick={resetForNewSession} size="lg" className="bg-white/90 text-slate-800 hover:bg-white font-bold text-lg">
+                <Button onClick={prepareNewSession} size="lg" className="bg-white/90 text-slate-800 hover:bg-white font-bold text-lg">
                     Main Lagi
                 </Button>
             </div>
@@ -189,8 +196,8 @@ export default function ThisOrThatPage() {
     };
     
     if (gameState === 'player_select') {
-        const cipaPlayed = Object.keys(cipaAnswers).length >= questions.length;
-        const jojoPlayed = Object.keys(jojoAnswers).length >= questions.length;
+        const cipaPlayed = questions.length > 0 && Object.keys(cipaAnswers).length >= questions.length;
+        const jojoPlayed = questions.length > 0 && Object.keys(jojoAnswers).length >= questions.length;
 
         return (
              <div className="cosmic-bg min-h-screen flex flex-col items-center justify-center p-4 text-white">
