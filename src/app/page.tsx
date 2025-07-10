@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords } from 'lucide-react';
 
 const menuItems = [
   {
@@ -46,6 +46,14 @@ const menuItems = [
     bgClass: 'from-teal-100 to-green-100',
     iconColor: 'text-teal-500',
   },
+  {
+    href: '/choose-adventure',
+    icon: Swords,
+    title: 'Petualangan Ajaib',
+    description: 'Pilih jalan ceritamu sendiri.',
+    bgClass: 'from-gray-200 to-slate-200',
+    iconColor: 'text-gray-600',
+  },
 ];
 
 export default function HomePage() {
@@ -62,28 +70,8 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isTall = menuItems.length === 5 && menuItems.indexOf(item) >= 3;
-            const gridColumnClass = isTall ? 'lg:col-span-1' : 'lg:col-span-1';
-             if (menuItems.length === 5 && menuItems.indexOf(item) === 4) {
-               return (
-                 <Link href={item.href} key={item.href} className="md:col-span-2 lg:col-span-3">
-                    <Card className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ease-in-out cursor-pointer h-full bg-gradient-to-br ${item.bgClass}`}>
-                      <CardHeader className="flex flex-row items-center gap-4">
-                        <div className={`p-3 rounded-full bg-white shadow-md ${item.iconColor}`}>
-                          <Icon size={28} />
-                        </div>
-                        <div>
-                          <CardTitle className="text-gray-800">{item.title}</CardTitle>
-                          <CardDescription className="text-gray-600">{item.description}</CardDescription>
-                        </div>
-                      </CardHeader>
-                    </Card>
-                  </Link>
-               )
-             }
-
             return (
-              <Link href={item.href} key={item.href} className={gridColumnClass}>
+              <Link href={item.href} key={item.href}>
                 <Card className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ease-in-out cursor-pointer h-full bg-gradient-to-br ${item.bgClass}`}>
                   <CardHeader className="flex flex-row items-center gap-4">
                     <div className={`p-3 rounded-full bg-white shadow-md ${item.iconColor}`}>
