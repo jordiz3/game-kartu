@@ -18,7 +18,7 @@ export const ai = genkit({
   plugins: [
     googleAI({
       // The API key is automatically sourced from the GOOGLE_API_KEY
-      // environment variable. Ensure this is set in your environment.
+      // environment variable if required.
     }),
   ],
   // Log level for Genkit's internal operations.
