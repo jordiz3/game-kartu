@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare } from 'lucide-react';
 
 const menuItems = [
   {
@@ -62,6 +62,14 @@ const menuItems = [
     bgClass: 'from-yellow-100 to-lime-100',
     iconColor: 'text-yellow-600',
   },
+  {
+    href: '/kartu-nikah',
+    icon: PenSquare,
+    title: 'Kartu Nikah Digital',
+    description: 'Kartu nikah digital Cipa & Jojo.',
+    bgClass: 'from-rose-100 to-red-100',
+    iconColor: 'text-rose-500',
+  }
 ];
 
 export default function HomePage() {
