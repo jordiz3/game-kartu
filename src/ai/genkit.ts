@@ -25,7 +25,5 @@ export const ai = genkit({
   // 'debug' is useful for development to see detailed logs.
   // 'info' or 'warn' is recommended for production.
   logLevel: 'debug',
-  // Enable OpenTelemetry for tracing and metrics. This is crucial for
-  // monitoring and debugging AI flows in production.
-  enableTraceStore: true,
+  // Enable OpenTelemetry for tracing and metrics
 });
