@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Flow untuk menyarankan pertanyaan menggunakan AI.
@@ -9,6 +10,7 @@
 
 import { ai } from '../genkit';
 import { z } from 'zod';
+import { googleAI } from '@genkit-ai/googleai';
 
 const SuggestQuestionInputSchema = z.object({
   currentUser: z.string().describe('Pengguna yang saat ini aktif, "cipa" atau "jojo".'),
@@ -29,6 +31,7 @@ export async function suggestQuestion(input: SuggestQuestionInput): Promise<Sugg
 
 const prompt = ai.definePrompt({
   name: 'suggestQuestionPrompt',
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: { schema: SuggestQuestionInputSchema },
   output: { schema: SuggestQuestionOutputSchema },
   prompt: `You are a creative and playful assistant helping a couple, Cipa and Jojo, find fun questions to ask each other. The current user is {{currentUser}}. They want to ask a question to {{recipient}}.
