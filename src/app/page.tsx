@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2, BrainCircuit, Gamepad2 } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2, BrainCircuit, Gamepad2, Paintbrush } from 'lucide-react';
 
 const menuItems = [
   {
@@ -111,6 +111,14 @@ const menuItems = [
     description: 'Bermain bersama secara real-time.',
     bgClass: 'from-slate-100 to-gray-200',
     iconColor: 'text-slate-600'
+  },
+  {
+    href: '/tebak-gambar',
+    icon: Paintbrush,
+    title: 'Tebak Gambar',
+    description: 'Gambar & tebak kata secara real-time.',
+    bgClass: 'from-amber-100 to-yellow-100',
+    iconColor: 'text-amber-600'
   },
 ];
 
