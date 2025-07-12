@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -28,16 +29,6 @@ const menuItems = [
     description: 'Mulai percakapan mendalam.',
     bgClass: 'from-blue-100 to-cyan-100',
     iconColor: 'text-blue-500',
-  },
-    {
-    href: '/peta-bintang',
-    icon: Map,
-    title: 'Peta Bintang Kenangan',
-    description: 'Abadikan kenangan sebagai rasi bintang.',
-    bgClass: 'from-gray-800 to-slate-900',
-    iconColor: 'text-yellow-300',
-    titleColor: 'text-white',
-    descColor: 'text-gray-300'
   },
   {
     href: '/truth-or-dare',
@@ -70,14 +61,6 @@ const menuItems = [
     description: 'Isi kata & lihat hasilnya yang lucu.',
     bgClass: 'from-yellow-100 to-lime-100',
     iconColor: 'text-yellow-600',
-  },
-   {
-    href: '/tts-romantis',
-    icon: Puzzle,
-    title: 'TTS Romantis',
-    description: 'Isi teka-teki tentang cinta.',
-    bgClass: 'from-green-100 to-emerald-100',
-    iconColor: 'text-green-600'
   },
   {
     href: '/kartu-nikah',
