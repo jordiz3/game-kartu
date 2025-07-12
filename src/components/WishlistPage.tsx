@@ -56,6 +56,7 @@ import {
   Loader2,
   Home,
 } from 'lucide-react';
+import heic2any from 'heic2any';
 
 type WishlistItem = {
   id: string;
@@ -234,13 +235,16 @@ export default function WishlistPage() {
     try {
       let fileToUpload: Blob = file;
       const fileName = file.name.toLowerCase();
-      if (fileName.match(/\.(heic|heif)$/)) {
-        const heic2any = (await import('heic2any')).default;
-        const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+      if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.8,
+        });
         fileToUpload = convertedBlob as Blob;
       }
       
-      const uniqueFileName = `${Date.now()}-${fileName.replace(/\s/g, '_')}`;
+      const uniqueFileName = `${Date.now()}-${fileName.replace(/\s/g, '_').replace(/\.[^/.]+$/, ".jpg")}`;
       const imageRef = storageRef(storage, `wishlist_photos/${itemId}/${uniqueFileName}`);
       
       await uploadBytes(imageRef, fileToUpload);

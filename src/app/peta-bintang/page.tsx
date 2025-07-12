@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Home, Loader2, Sparkles, Star, Trash2, UploadCloud, CalendarIcon, Info } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import heic2any from 'heic2any';
+
 
 type Memory = {
   id: string;
@@ -103,8 +105,7 @@ export default function PetaBintangPage() {
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!skyRef.current) return;
     const target = e.target as HTMLElement;
-    // Prevent opening form if a star or button is clicked
-    if (target !== skyRef.current) return;
+    if (!target.classList.contains('night-sky')) return;
     
     const rect = skyRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -127,27 +128,31 @@ export default function PetaBintangPage() {
 
     let uploadedPhotoUrl: string | null = null;
     if (photoFile) {
-      toast({ title: 'Mengupload foto...' });
-      try {
-        let fileToUpload: Blob = photoFile;
-        // Check if it's a HEIC/HEIF file and convert it if so
-        if (photoFile.name.toLowerCase().match(/\.(heic|heif)$/)) {
-            const heic2any = (await import('heic2any')).default;
-            const convertedBlob = await heic2any({ blob: photoFile, toType: 'image/jpeg', quality: 0.8 });
-            fileToUpload = convertedBlob as Blob;
+        toast({ title: 'Memproses & mengupload foto...' });
+        try {
+            let fileToUpload: Blob = photoFile;
+            const fileName = photoFile.name.toLowerCase();
+            if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+                const convertedBlob = await heic2any({
+                    blob: photoFile,
+                    toType: 'image/jpeg',
+                    quality: 0.8,
+                });
+                fileToUpload = convertedBlob as Blob;
+            }
+
+            const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name.replace(/\.[^/.]+$/, ".jpg")}`);
+            await uploadBytes(photoStorageRef, fileToUpload);
+            uploadedPhotoUrl = await getDownloadURL(photoStorageRef);
+            toast({ title: 'Foto berhasil diupload!' });
+        } catch (error) {
+            console.error("Photo upload error:", error);
+            toast({ variant: 'destructive', title: 'Gagal upload foto.', description: 'Terjadi masalah saat konversi atau upload.' });
+            setIsLoading(false);
+            return;
         }
-        
-        const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
-        await uploadBytes(photoStorageRef, fileToUpload);
-        uploadedPhotoUrl = await getDownloadURL(photoStorageRef);
-        toast({ title: 'Foto berhasil diupload!' });
-      } catch (error) {
-        console.error("Photo upload error:", error);
-        toast({ variant: 'destructive', title: 'Gagal upload foto.', description: 'Terjadi masalah saat konversi atau upload.' });
-        setIsLoading(false);
-        return;
-      }
     }
+
 
     try {
       await addDoc(collection(db, 'memories'), {
