@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Flow AI untuk menghasilkan pertanyaan kuis pengetahuan umum.
@@ -53,11 +52,16 @@ const generateQuizFlow = ai.defineFlow(
   async () => {
     const { output } = await prompt({});
     
+    // Defensive check to ensure output is not null or undefined
+    if (!output) {
+      throw new Error("AI failed to generate a response for the quiz question.");
+    }
+
     // Acak urutan pilihan jawaban untuk variasi
-    const shuffledOptions = output!.options.sort(() => Math.random() - 0.5);
+    const shuffledOptions = output.options.sort(() => Math.random() - 0.5);
     
     return {
-      ...output!,
+      ...output,
       options: shuffledOptions,
     };
   }

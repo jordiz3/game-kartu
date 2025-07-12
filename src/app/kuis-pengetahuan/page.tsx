@@ -32,8 +32,9 @@ export default function KuisPengetahuanPage() {
       toast({
         variant: 'destructive',
         title: 'Gagal Memuat Pertanyaan',
-        description: 'AI sepertinya sedang butuh istirahat. Coba lagi nanti.',
+        description: 'AI sepertinya sedang butuh istirahat. Coba lagi nanti atau refresh halaman.',
       });
+      setQuizData(null); // Clear old data on error
     } finally {
       setIsLoading(false);
     }
@@ -110,12 +111,15 @@ export default function KuisPengetahuanPage() {
               </div>
             </div>
           ) : (
-             <div className="text-center text-red-500 min-h-[250px] flex items-center justify-center">
-                Gagal memuat pertanyaan. Silakan coba lagi.
+             <div className="text-center text-red-500 min-h-[250px] flex flex-col items-center justify-center gap-4">
+                <p>Gagal memuat pertanyaan. Silakan coba lagi.</p>
+                <Button onClick={fetchQuestion} disabled={isLoading}>
+                    <Shuffle className="mr-2"/> Coba Lagi
+                </Button>
              </div>
           )}
           
-          {answerStatus !== 'idle' && (
+          {answerStatus !== 'idle' && quizData && (
              <div className="mt-6 text-center animate-fade-in">
                 <Button onClick={fetchQuestion} className="w-full text-lg py-6" disabled={isLoading}>
                     <Shuffle className="mr-2"/> Pertanyaan Berikutnya
