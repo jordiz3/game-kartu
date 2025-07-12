@@ -1,0 +1,40 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Aturan untuk Secret Box
+    match /secret_box/{questionId} {
+      allow read, create, update: if request.auth != null;
+    }
+    
+    // Aturan untuk Wishlist Dates
+    match /wishlist_dates/{wishlistId} {
+      allow read, create, update, delete: if request.auth != null;
+    }
+    
+    // Aturan untuk Peta Bintang Kenangan
+    match /memories/{memoryId} {
+      allow read, create, update, delete: if request.auth != null;
+    }
+
+    // Aturan untuk game Tic-Tac-Toe
+    match /tic_tac_toe_games/{gameId} {
+      // Siapa saja yang terautentikasi bisa membaca state game
+      allow read: if request.auth != null;
+      
+      // Izin untuk membuat game baru
+      allow create: if request.auth != null;
+      
+      // Izin untuk update (membuat langkah)
+      // Hanya izinkan update jika pengguna terautentikasi
+      allow update: if request.auth != null;
+    }
+    
+    // Aturan default yang lebih ketat untuk koleksi lain
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

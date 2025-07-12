@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2, BrainCircuit } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2, BrainCircuit, Gamepad2 } from 'lucide-react';
 
 const menuItems = [
   {
@@ -103,6 +103,14 @@ const menuItems = [
     description: 'Uji wawasan dengan kuis seru.',
     bgClass: 'from-blue-100 to-purple-100',
     iconColor: 'text-blue-600'
+  },
+  {
+    href: '/tic-tac-toe',
+    icon: Gamepad2,
+    title: 'Tic-Tac-Toe Online',
+    description: 'Bermain bersama secara real-time.',
+    bgClass: 'from-slate-100 to-gray-200',
+    iconColor: 'text-slate-600'
   },
 ];
 
