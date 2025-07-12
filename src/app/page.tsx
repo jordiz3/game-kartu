@@ -1,9 +1,8 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2 } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2, BrainCircuit } from 'lucide-react';
 
 const menuItems = [
   {
@@ -95,6 +94,14 @@ const menuItems = [
     description: 'Buat puisi romantis dengan AI.',
     bgClass: 'from-indigo-100 to-purple-200',
     iconColor: 'text-indigo-500',
+  },
+   {
+    href: '/kuis-pengetahuan',
+    icon: BrainCircuit,
+    title: 'Kuis Pengetahuan',
+    description: 'Uji wawasan dengan kuis seru.',
+    bgClass: 'from-blue-100 to-purple-100',
+    iconColor: 'text-blue-600'
   },
 ];
 
