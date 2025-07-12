@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Flow AI untuk menghasilkan teka-teki silang (TTS) secara dinamis.
@@ -43,17 +44,46 @@ const prompt = ai.definePrompt({
   model: googleAI.model('gemini-1.5-pro-latest'),
   input: { schema: GenerateCrosswordInputSchema },
   output: { schema: GenerateCrosswordOutputSchema },
-  prompt: `You are an expert crossword puzzle generator. Your task is to take a list of questions and answers and create a valid, compact, and interlocking crossword puzzle grid.
+  prompt: `You are an expert crossword puzzle generator. Your task is to take a list of questions and answers and create a valid, compact, and fully interlocking crossword puzzle grid.
 
 RULES:
-1.  All provided answers must be included in the grid.
-2.  The grid should be as compact as possible.
-3.  The output must be a valid JSON object matching the provided schema.
-4.  The grid must be a 2D array of strings, where each string is a single character (a letter or a space for blank cells).
-5.  The 'words' array must contain the placement information for every single answer.
-6.  Number the words sequentially, starting from 1, based on their position from top-to-bottom, left-to-right.
+1.  All provided answers MUST be included in the grid.
+2.  Every word must be connected to at least one other word. There should be NO disconnected words or sections.
+3.  The grid should be as compact as possible.
+4.  The output MUST be a valid JSON object matching the provided schema.
+5.  The 'grid' must be a 2D array of strings, where each string is a single uppercase letter or a space for blank cells.
+6.  The 'words' array must contain the placement information for EVERY single answer.
+7.  Number the words sequentially, starting from 1, based on their position from top-to-bottom, left-to-right.
 
-Here is the list of questions and answers:
+Here is an example to show you how to do it.
+EXAMPLE INPUT:
+[
+  { "question": "Ibukota Indonesia", "answer": "JAKARTA" },
+  { "question": "Pulau Dewata", "answer": "BALI" },
+  { "question": "Makanan khas Padang", "answer": "RENDANG" }
+]
+
+EXAMPLE OUTPUT (for the input above):
+{
+  "grid": [
+    ["J", "A", "K", "A", "R", "T", "A"],
+    [" ", " ", " ", " ", "E", " ", " "],
+    ["B", "A", "L", "I", "N", " ", " "],
+    [" ", " ", " ", " ", "D", " ", " "],
+    [" ", " ", " ", " ", "A", " ", " "],
+    [" ", " ", " ", " ", "N", " ", " "],
+    [" ", " ", " ", " ", "G", " ", " "]
+  ],
+  "words": [
+    { "num": 1, "question": "Ibukota Indonesia", "answer": "JAKARTA", "direction": "across", "row": 0, "col": 0 },
+    { "num": 2, "question": "Makanan khas Padang", "answer": "RENDANG", "direction": "down", "row": 0, "col": 4 },
+    { "num": 3, "question": "Pulau Dewata", "answer": "BALI", "direction": "across", "row": 2, "col": 0 }
+  ]
+}
+
+Now, generate a crossword puzzle for the following list of questions and answers. Make sure it is fully connected and follows all the rules.
+
+List of questions and answers:
 {{#each this}}
 - Question: "{{question}}", Answer: "{{answer}}"
 {{/each}}
@@ -68,7 +98,13 @@ const generateCrosswordFlow = ai.defineFlow(
     outputSchema: GenerateCrosswordOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    // Convert all answers to uppercase for consistency
+    const processedInput = input.map(item => ({
+        ...item,
+        answer: item.answer.toUpperCase().replace(/[^A-Z]/g, '')
+    }));
+
+    const { output } = await prompt(processedInput);
     if (!output) {
       throw new Error('AI failed to generate a crossword puzzle.');
     }
