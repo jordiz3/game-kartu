@@ -13,11 +13,11 @@ const gridLayout = [
     [0, 1, 0, 0, 2, 0, 0, 0, 0, 0],
     [0, 'P', 0, 0, 'A', 0, 0, 0, 0, 0],
     [3, 'A', 4, 'S', 'T', 'A', 0, 0, 0, 0],
-    [0, 'N', 0, 'E', 0, 'W', 0, 0, 0, 0],
+    [0, 'N', 'I', 'E', 0, 'W', 0, 0, 0, 0],
     [0, 'T', 5, 'R', 'A', 'W', 'A', 'N', 'G', 'A', 'N'],
-    [0, 'A', 0, 'I', 0, 0, 'D', 0, 'I', 0, 0],
-    [0, 'I', 0, 'N', 0, 0, 'A', 0, 'L', 0, 0],
-    [0, 0, 0, 0, 0, 0, 'Y', 0, 'Y', 0, 0],
+    [0, 'A', 0, 'I', 0, 'D', 0, 0, 'I', 0, 0],
+    [0, 'I', 0, 'N', 0, 'A', 0, 0, 'L', 0, 0],
+    [0, 0, 0, 'S', 0, 0, 'Y', 0, 'Y', 0, 0],
 ];
 
 const questions = [
@@ -83,12 +83,12 @@ export default function TtsRomantisPage() {
         setIsComplete(false);
     };
 
-    const renderCell = (cell: any, row: number, col: number) => {
-        if (cell === 0) {
+    const renderCell = (cellValue: any, row: number, col: number) => {
+        if (cellValue === 0) {
             return <div key={`${row}-${col}`} className="w-8 h-8 md:w-10 md:h-10 bg-gray-700 rounded-sm"></div>;
         }
 
-        const questionNumber = typeof cell === 'number' && cell > 0 ? cell : null;
+        const questionNumber = typeof cellValue === 'number' && cellValue > 0 ? cellValue : null;
 
         return (
             <div key={`${row}-${col}`} className="relative w-8 h-8 md:w-10 md:h-10">
