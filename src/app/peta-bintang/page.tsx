@@ -68,7 +68,6 @@ export default function PetaBintangPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const skyRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -89,6 +88,9 @@ export default function PetaBintangPage() {
       const fetchedMemories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Memory));
       fetchedMemories.sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0));
       setMemories(fetchedMemories);
+    }, (error) => {
+        console.error("Firestore snapshot error:", error);
+        toast({ variant: "destructive", title: "Gagal memuat data." });
     });
 
     return () => {
@@ -107,7 +109,6 @@ export default function PetaBintangPage() {
   const resetForm = () => {
     setFormState({ title: '', date: '', story: '', parentId: null });
     setPhotoFile(null);
-    if(fileInputRef.current) fileInputRef.current.value = '';
     setNewMemoryPos(null);
   };
 
@@ -141,9 +142,8 @@ export default function PetaBintangPage() {
     }
     setIsLoading(true);
     
-    let uploadedPhotoUrl: string | null = null;
-    
     try {
+      let uploadedPhotoUrl: string | null = null;
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
@@ -267,9 +267,11 @@ export default function PetaBintangPage() {
                   {memories.filter(m => m.id !== selectedMemory?.id).map(m => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/png, image/jpeg" />
-              <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full" disabled={!isAuthenticated}>
-                <UploadCloud className="mr-2" /> {photoFile ? `File: ${photoFile.name}` : 'Upload Foto'}
+              <Button asChild variant="outline" className="w-full" disabled={!isAuthenticated}>
+                <label htmlFor="photo-upload-dialog">
+                  <UploadCloud className="mr-2" /> {photoFile ? `File: ${photoFile.name}` : 'Upload Foto'}
+                  <input id="photo-upload-dialog" type="file" onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/png, image/jpeg" />
+                </label>
               </Button>
             </div>
             <DialogFooter>
@@ -314,5 +316,3 @@ export default function PetaBintangPage() {
     </>
   );
 }
-
-    

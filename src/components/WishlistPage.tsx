@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { db, auth, storage } from '../lib/firebase';
 import {
   collection,
@@ -98,14 +98,11 @@ export default function WishlistPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   
-  const photoInputRef = useRef<HTMLInputElement>(null);
-
   const [currentTab, setCurrentTab] = useState('impian');
   const [filterCategory, setFilterCategory] = useState('Semua');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemStatuses, setItemStatuses] = useState<Record<string, ItemStatus>>({});
   
-  const photoUploadRef = useRef<HTMLInputElement>(null);
   const [currentItemIdForUpload, setCurrentItemIdForUpload] = useState<string | null>(null);
 
   useEffect(() => {
@@ -151,9 +148,6 @@ export default function WishlistPage() {
     setDescription('');
     setIsHighPriority(false);
     setPhotoFile(null);
-    if (photoInputRef.current) {
-        photoInputRef.current.value = '';
-    }
   };
 
   const handleAddItem = async () => {
@@ -166,10 +160,9 @@ export default function WishlistPage() {
       return;
     }
     setIsAdding(true);
-
-    let uploadedPhotoUrl: string | null = null;
     
     try {
+      let uploadedPhotoUrl: string | null = null;
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
         const imageRef = storageRef(storage, `wishlist_photos/${Date.now()}-${photoFile.name}`);
@@ -248,7 +241,8 @@ export default function WishlistPage() {
 
   const handlePhotoUploadTrigger = (itemId: string) => {
     setCurrentItemIdForUpload(itemId);
-    photoUploadRef.current?.click();
+    const input = document.getElementById(`photo-upload-input-${itemId}`) as HTMLInputElement;
+    input?.click();
   };
   
   const handleFileSelectedForUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,9 +271,6 @@ export default function WishlistPage() {
     } finally {
       setItemLoading(itemId, false);
       setCurrentItemIdForUpload(null);
-      if (photoUploadRef.current) {
-        photoUploadRef.current.value = '';
-      }
     }
   };
 
@@ -367,11 +358,13 @@ export default function WishlistPage() {
         </div>
         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Deskripsi nge-date..." rows={3} className="mb-4" />
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <Button variant="outline" onClick={() => photoInputRef.current?.click()} className="w-full sm:w-auto" disabled={!isAuthenticated}>
-                <Camera className="mr-2 h-4 w-4" />
-                {photoFile ? `File: ${photoFile.name}` : 'Pilih Foto Utama'}
+            <Button asChild variant="outline" className="w-full sm:w-auto" disabled={!isAuthenticated}>
+                <label htmlFor="photo-upload-main">
+                    <Camera className="mr-2 h-4 w-4" />
+                    {photoFile ? `File: ${photoFile.name}` : 'Pilih Foto Utama'}
+                    <input id="photo-upload-main" type="file" className="hidden" accept="image/png, image/jpeg" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} />
+                </label>
             </Button>
-            <input type="file" ref={photoInputRef} className="hidden" accept="image/png, image/jpeg" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} />
             <div className="flex items-center space-x-2">
                 <Checkbox id="prioritas" checked={isHighPriority} onCheckedChange={(checked) => setIsHighPriority(Boolean(checked))} />
                 <label htmlFor="prioritas" className="text-sm font-medium leading-none">Penting Banget</label>
@@ -425,6 +418,7 @@ export default function WishlistPage() {
                         onToggleComplete={() => handleToggleComplete(item)}
                         onDelete={() => handleDeleteItem(item.id)}
                         onUploadClick={handlePhotoUploadTrigger}
+                        onFileSelected={handleFileSelectedForUpload}
                         onUpdateRating={handleUpdateRating}
                         onAddRatingItem={handleAddRatingItem}
                         isAuthenticated={isAuthenticated}
@@ -434,13 +428,6 @@ export default function WishlistPage() {
           </div>
         </section>
       </Tabs>
-      <input 
-        type="file" 
-        ref={photoUploadRef} 
-        onChange={handleFileSelectedForUpload} 
-        className="hidden" 
-        accept="image/png, image/jpeg"
-      />
        <footer className="text-center mt-12 border-t pt-4">
          <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
             <Home size={16}/> Kembali ke Menu Utama
@@ -451,7 +438,7 @@ export default function WishlistPage() {
 }
 
 // Sub-component for displaying/editing a single wishlist item
-function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadClick, onUpdateRating, onAddRatingItem, isAuthenticated }: any) {
+function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadClick, onFileSelected, onUpdateRating, onAddRatingItem, isAuthenticated }: any) {
     const [editValues, setEditValues] = useState(item);
     const [isAddingRating, setIsAddingRating] = useState(false);
     const [newRatingName, setNewRatingName] = useState('');
@@ -554,10 +541,19 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
             {item.isCompleted && (
                  <div className="mt-4 pt-4 border-t">
                     {!item.photoUrl && (
-                        <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => onUploadClick(item.id)} disabled={status.isLoading || !isAuthenticated}>
+                        <>
+                         <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => onUploadClick(item.id)} disabled={status.isLoading || !isAuthenticated}>
                             {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
                             Upload Foto Kenangan
-                        </Button>
+                         </Button>
+                         <input
+                            type="file"
+                            id={`photo-upload-input-${item.id}`}
+                            className="hidden"
+                            accept="image/png, image/jpeg"
+                            onChange={onFileSelected}
+                         />
+                        </>
                     )}
                     <div className="space-y-2">
                         <p className="text-sm font-semibold text-gray-600">Rating Pengalaman:</p>
@@ -606,5 +602,3 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         </Card>
     )
 }
-
-    
