@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Home, Loader2, Sparkles, Star, Trash2, UploadCloud, CalendarIcon, Info } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import heic2any from 'heic2any';
 
 
 type Memory = {
@@ -105,6 +104,7 @@ export default function PetaBintangPage() {
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!skyRef.current) return;
     const target = e.target as HTMLElement;
+    // Ensure clicks on stars don't trigger a new memory form
     if (!target.classList.contains('night-sky')) return;
     
     const rect = skyRef.current.getBoundingClientRect();
@@ -123,36 +123,40 @@ export default function PetaBintangPage() {
   };
 
   const handleFormSubmit = async () => {
-    if (!formState.title || !newMemoryPos) return;
+    if (!formState.title || !newMemoryPos) {
+      toast({ variant: 'destructive', title: 'Judul tidak boleh kosong.' });
+      return;
+    }
     setIsLoading(true);
 
     let uploadedPhotoUrl: string | null = null;
     if (photoFile) {
-        toast({ title: 'Memproses & mengupload foto...' });
-        try {
-            let fileToUpload: Blob = photoFile;
-            const fileName = photoFile.name.toLowerCase();
-            if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
-                const convertedBlob = await heic2any({
-                    blob: photoFile,
-                    toType: 'image/jpeg',
-                    quality: 0.8,
-                });
-                fileToUpload = convertedBlob as Blob;
-            }
+      toast({ title: 'Memproses & mengupload foto...' });
+      try {
+        const heic2any = (await import('heic2any')).default;
+        let fileToUpload: Blob = photoFile;
+        const fileName = photoFile.name.toLowerCase();
 
-            const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name.replace(/\.[^/.]+$/, ".jpg")}`);
-            await uploadBytes(photoStorageRef, fileToUpload);
-            uploadedPhotoUrl = await getDownloadURL(photoStorageRef);
-            toast({ title: 'Foto berhasil diupload!' });
-        } catch (error) {
-            console.error("Photo upload error:", error);
-            toast({ variant: 'destructive', title: 'Gagal upload foto.', description: 'Terjadi masalah saat konversi atau upload.' });
-            setIsLoading(false);
-            return;
+        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+          const convertedBlob = await heic2any({
+            blob: photoFile,
+            toType: 'image/jpeg',
+            quality: 0.8,
+          });
+          fileToUpload = convertedBlob as Blob;
         }
-    }
 
+        const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name.replace(/\.[^/.]+$/, ".jpg")}`);
+        await uploadBytes(photoStorageRef, fileToUpload);
+        uploadedPhotoUrl = await getDownloadURL(photoStorageRef);
+        toast({ title: 'Foto berhasil diupload!' });
+      } catch (error) {
+        console.error("Photo upload error:", error);
+        toast({ variant: 'destructive', title: 'Gagal upload foto.', description: 'Terjadi masalah saat konversi atau upload.' });
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       await addDoc(collection(db, 'memories'), {
@@ -251,8 +255,8 @@ export default function PetaBintangPage() {
               <Input type="date" value={formState.date} onChange={e => setFormState({...formState, date: e.target.value})} />
               <Textarea placeholder="Ceritakan kenanganmu di sini..." value={formState.story} onChange={e => setFormState({...formState, story: e.target.value})} />
               <Select 
-                onValueChange={value => setFormState({...formState, parentId: value === '_none_' ? null : value })} 
-                defaultValue="_none_"
+                value={formState.parentId || '_none_'}
+                onValueChange={value => setFormState({...formState, parentId: value === '_none_' ? null : value })}
               >
                 <SelectTrigger><SelectValue placeholder="Hubungkan ke kenangan lain (opsional)" /></SelectTrigger>
                 <SelectContent>

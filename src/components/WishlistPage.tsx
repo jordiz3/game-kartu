@@ -56,7 +56,6 @@ import {
   Loader2,
   Home,
 } from 'lucide-react';
-import heic2any from 'heic2any';
 
 type WishlistItem = {
   id: string;
@@ -223,7 +222,7 @@ export default function WishlistPage() {
     setCurrentItemIdForUpload(itemId);
     photoUploadRef.current?.click();
   };
-
+  
   const handleFileSelectedForUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !currentItemIdForUpload) return;
@@ -233,8 +232,10 @@ export default function WishlistPage() {
     toast({ title: 'Memproses & mengupload foto...' });
 
     try {
+      const heic2any = (await import('heic2any')).default;
       let fileToUpload: Blob = file;
       const fileName = file.name.toLowerCase();
+      
       if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
         const convertedBlob = await heic2any({
           blob: file,
@@ -265,7 +266,7 @@ export default function WishlistPage() {
       }
     }
   };
-  
+
   const handleUpdateRating = async (id: string, ratingName: string, newRating: number) => {
     const item = wishlist.find(i => i.id === id);
     if (!item) return;
