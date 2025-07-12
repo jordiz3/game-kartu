@@ -532,9 +532,11 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                  <div className="mt-4 pt-4 border-t">
                     {!item.photoUrl && (
                         <>
-                         <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => document.getElementById(`photo-upload-input-${item.id}`)?.click()} disabled={status.isLoading || !isAuthenticated}>
-                            {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
-                            Upload Foto Kenangan
+                         <Button asChild variant="outline" className="w-full border-dashed mb-4" disabled={status.isLoading || !isAuthenticated}>
+                            <label htmlFor={`photo-upload-input-${item.id}`}>
+                                {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
+                                Upload Foto Kenangan
+                            </label>
                          </Button>
                          <input
                             type="file"
