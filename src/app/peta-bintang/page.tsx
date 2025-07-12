@@ -37,7 +37,7 @@ type Memory = {
   createdAt: any;
 };
 
-const StarComponent = ({ memory, onClick, isSelected, parentPosition }: { memory: Memory, onClick: () => void, isSelected: boolean, parentPosition: {x: number, y: number} | null }) => (
+const StarComponent = ({ memory, onClick, isSelected, parentPosition }: { memory: Memory, onClick: (e: React.MouseEvent) => void, isSelected: boolean, parentPosition: {x: number, y: number} | null }) => (
   <>
     {parentPosition && (
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
@@ -104,7 +104,7 @@ export default function PetaBintangPage() {
 
     return () => {
       unsubAuth();
-      unsubFirestore && unsubFirestore();
+      if(unsubFirestore) unsubFirestore();
     };
   }, [isAuthenticated, toast]);
   
@@ -322,5 +322,3 @@ export default function PetaBintangPage() {
     </>
   );
 }
-
-    
