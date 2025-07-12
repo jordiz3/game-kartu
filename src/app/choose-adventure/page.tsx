@@ -42,6 +42,9 @@ export default function ChooseAdventurePage() {
         previousStory: INITIAL_PROMPT,
         choice: INITIAL_CHOICE,
       });
+      if (!result) {
+        throw new Error("AI response was empty.");
+      }
       setStory(result);
       setFullStory([result.storySegment]);
     } catch (error) {
@@ -68,6 +71,9 @@ export default function ChooseAdventurePage() {
         previousStory: previousStoryText,
         choice: choice,
       });
+       if (!result) {
+        throw new Error("AI response was empty.");
+      }
       setStory(result);
       setFullStory(prev => [...prev, result.storySegment]);
     } catch (error) {
@@ -77,11 +83,18 @@ export default function ChooseAdventurePage() {
         title: 'Cerita Tersendat',
         description: 'Alur cerita sepertinya buntu. Coba buat pilihan lain atau mulai ulang.',
       });
-      setGameState('error');
+      // Don't set to error state, allow user to try another choice
     } finally {
       setIsLoading(false);
     }
   };
+  
+  const handleReset = () => {
+    setGameState('start');
+    setStory(null);
+    setFullStory([]);
+    setIsLoading(false);
+  }
 
   const renderContent = () => {
     if (isLoading && gameState === 'start') {
@@ -112,7 +125,7 @@ export default function ChooseAdventurePage() {
             <div className="text-center text-white bg-red-500/30 p-8 rounded-2xl">
                 <h2 className="text-3xl font-bold mb-4">Oops, Ada Naga!</h2>
                 <p className="mb-6">Terjadi kesalahan saat memuat cerita. Silakan mulai petualangan baru.</p>
-                <Button onClick={() => setGameState('start')} size="lg" variant="secondary">
+                <Button onClick={handleReset} size="lg" variant="secondary">
                     Kembali ke Awal
                 </Button>
             </div>
