@@ -51,10 +51,7 @@ const generateQuizFlow = ai.defineFlow(
     inputSchema: z.object({}), // Input kosong
     outputSchema: QuizQuestionOutputSchema,
     // Menambahkan mekanisme retry dengan jeda eksponensial jika terjadi error sementara
-    retrier: Policy.backoff({
-      maxAttempts: 3,      // Coba maksimal 3 kali
-      initialDelay: 1000,  // Jeda awal 1 detik
-    }),
+    retrier: Policy.handleAll().retry().attempts(3).backoff(1000),
   },
   async () => {
     const { output } = await prompt({});
