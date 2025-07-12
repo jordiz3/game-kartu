@@ -76,7 +76,10 @@ export default function PetaBintangPage() {
       if (user) {
         setIsAuthenticated(true);
       } else {
-        signInAnonymously(auth).catch(console.error);
+        signInAnonymously(auth).catch(error => {
+            console.error("Anonymous sign-in failed:", error);
+            toast({ variant: "destructive", title: "Autentikasi Gagal" });
+        });
       }
     });
 
@@ -92,7 +95,7 @@ export default function PetaBintangPage() {
       unsubAuth();
       unsubFirestore && unsubFirestore();
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, toast]);
   
   const parentMemories = memories.reduce((acc, memory) => {
       if (memory.parentId && memories.find(m => m.id === memory.parentId)) {
@@ -109,7 +112,7 @@ export default function PetaBintangPage() {
   };
 
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!skyRef.current) return;
+    if (!skyRef.current || !isAuthenticated) return;
     const target = e.target as HTMLElement;
     // Ensure the click is on the sky, not on a star button
     if (target.closest('button')) return;
@@ -137,7 +140,6 @@ export default function PetaBintangPage() {
     
     try {
       let uploadedPhotoUrl: string | null = null;
-
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
@@ -161,7 +163,7 @@ export default function PetaBintangPage() {
       resetForm();
     } catch (error) {
       console.error("Error adding memory:", error);
-      toast({ variant: 'destructive', title: 'Gagal menyimpan kenangan.' });
+      toast({ variant: 'destructive', title: 'Gagal menyimpan kenangan.', description: (error as Error).message });
     } finally {
       setIsLoading(false);
     }
@@ -218,8 +220,9 @@ export default function PetaBintangPage() {
         <div className="flex-grow flex items-center justify-center p-4">
             <div className="w-full h-[80vh] max-w-7xl mx-auto rounded-2xl overflow-hidden relative night-sky border border-white/10" ref={skyRef} onClick={handleSkyClick}>
                 {!isAuthenticated && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <Loader2 className="animate-spin h-8 w-8 text-white/50" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none bg-black/50">
+                        <Loader2 className="animate-spin h-8 w-8 text-white/50 mb-2" />
+                        <p className="text-white/50">Menghubungkan ke semesta...</p>
                     </div>
                 )}
                 {isAuthenticated && memories.length === 0 && (
@@ -260,13 +263,13 @@ export default function PetaBintangPage() {
                   {memories.filter(m => m.id !== selectedMemory?.id).map(m => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/png, image/jpeg, image/gif" />
-              <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
+              <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/png, image/jpeg" />
+              <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full" disabled={!isAuthenticated}>
                 <UploadCloud className="mr-2" /> {photoFile ? `File: ${photoFile.name}` : 'Upload Foto'}
               </Button>
             </div>
             <DialogFooter>
-              <Button onClick={handleFormSubmit} disabled={isLoading}>
+              <Button onClick={handleFormSubmit} disabled={isLoading || !isAuthenticated}>
                 {isLoading && <Loader2 className="animate-spin mr-2" />}
                 Letakkan Bintang
               </Button>
@@ -292,7 +295,7 @@ export default function PetaBintangPage() {
                         <p className="text-foreground/90 whitespace-pre-wrap">{selectedMemory.story || 'Tidak ada cerita.'}</p>
                     </div>
                     <DialogFooter className="justify-between">
-                        <Button variant="destructive" onClick={() => handleDeleteMemory(selectedMemory.id)} disabled={isLoading}>
+                        <Button variant="destructive" onClick={() => handleDeleteMemory(selectedMemory.id)} disabled={isLoading || !isAuthenticated}>
                             {isLoading ? <Loader2 className="animate-spin" /> : <Trash2 />}
                         </Button>
                         <DialogClose asChild>

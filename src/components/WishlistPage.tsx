@@ -113,13 +113,14 @@ export default function WishlistPage() {
       if (user) {
         setIsAuthenticated(true);
       } else {
-        signInAnonymously(auth).catch((error) =>
-          console.error('Auth failed', error)
-        );
+        signInAnonymously(auth).catch((error) => {
+          console.error('Auth failed', error);
+          toast({ variant: 'destructive', title: 'Autentikasi Gagal' });
+        });
       }
     });
     return () => unsubscribeAuth();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -183,7 +184,7 @@ export default function WishlistPage() {
       resetForm();
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: 'Gagal menambah wishlist.' });
+      toast({ variant: 'destructive', title: 'Gagal menambah wishlist.', description: (error as Error).message });
     } finally {
       setIsAdding(false);
     }
@@ -267,7 +268,7 @@ export default function WishlistPage() {
       toast({ title: 'Foto berhasil disimpan!' });
     } catch (error) {
       console.error('Error uploading photo:', error);
-      toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: 'Pastikan koneksi internet stabil dan coba lagi.' });
+      toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: (error as Error).message });
     } finally {
       setItemLoading(itemId, false);
       setCurrentItemIdForUpload(null);
@@ -361,16 +362,16 @@ export default function WishlistPage() {
         </div>
         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Deskripsi nge-date..." rows={3} className="mb-4" />
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <Button variant="outline" onClick={() => photoInputRef.current?.click()} className="w-full sm:w-auto">
+            <Button variant="outline" onClick={() => photoInputRef.current?.click()} className="w-full sm:w-auto" disabled={!isAuthenticated}>
                 <Camera className="mr-2 h-4 w-4" />
                 {photoFile ? `File: ${photoFile.name}` : 'Pilih Foto Utama'}
             </Button>
-            <input type="file" ref={photoInputRef} className="hidden" accept="image/png, image/jpeg, image/gif" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} />
+            <input type="file" ref={photoInputRef} className="hidden" accept="image/png, image/jpeg" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} />
             <div className="flex items-center space-x-2">
                 <Checkbox id="prioritas" checked={isHighPriority} onCheckedChange={(checked) => setIsHighPriority(Boolean(checked))} />
                 <label htmlFor="prioritas" className="text-sm font-medium leading-none">Penting Banget</label>
             </div>
-            <Button onClick={handleAddItem} className="bg-pink-500 hover:bg-pink-600 w-full sm:w-auto" disabled={isAdding}>
+            <Button onClick={handleAddItem} className="bg-pink-500 hover:bg-pink-600 w-full sm:w-auto" disabled={isAdding || !isAuthenticated}>
                 {isAdding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                 Gas Tambah
             </Button>
@@ -403,7 +404,8 @@ export default function WishlistPage() {
           </div>
           
           <div className="space-y-4">
-            {filteredWishlist.length === 0 ? (
+            {!isAuthenticated && <div className="text-center p-8"><Loader2 className="mx-auto animate-spin" /></div>}
+            {isAuthenticated && filteredWishlist.length === 0 ? (
                  <div className="text-center text-gray-500 p-8 bg-gray-50 rounded-lg">Kosong nih, belum ada plan.</div>
             ) : (
                 filteredWishlist.map(item => (
@@ -420,6 +422,7 @@ export default function WishlistPage() {
                         onUploadClick={handlePhotoUploadTrigger}
                         onUpdateRating={handleUpdateRating}
                         onAddRatingItem={handleAddRatingItem}
+                        isAuthenticated={isAuthenticated}
                     />
                 ))
             )}
@@ -431,7 +434,7 @@ export default function WishlistPage() {
         ref={photoUploadRef} 
         onChange={handleFileSelectedForUpload} 
         className="hidden" 
-        accept="image/png, image/jpeg, image/gif"
+        accept="image/png, image/jpeg"
       />
        <footer className="text-center mt-12 border-t pt-4">
          <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
@@ -443,7 +446,7 @@ export default function WishlistPage() {
 }
 
 // Sub-component for displaying/editing a single wishlist item
-function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadClick, onUpdateRating, onAddRatingItem }: any) {
+function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadClick, onUpdateRating, onAddRatingItem, isAuthenticated }: any) {
     const [editValues, setEditValues] = useState(item);
     const [isAddingRating, setIsAddingRating] = useState(false);
     const [newRatingName, setNewRatingName] = useState('');
@@ -474,8 +477,8 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                         <label htmlFor={`edit-priority-${item.id}`} className="text-gray-600 text-sm">Penting Banget</label>
                     </div>
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="ghost" onClick={onEditCancel} disabled={status.isLoading}>Batal</Button>
-                        <Button onClick={() => onEditSave(item.id, editValues)} className="bg-green-500 hover:bg-green-600" disabled={status.isLoading}>
+                        <Button variant="ghost" onClick={onEditCancel} disabled={status.isLoading || !isAuthenticated}>Batal</Button>
+                        <Button onClick={() => onEditSave(item.id, editValues)} className="bg-green-500 hover:bg-green-600" disabled={status.isLoading || !isAuthenticated}>
                             {status.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Simpen
                         </Button>
@@ -507,13 +510,13 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                             )}
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-500" onClick={onEditStart} disabled={status.isLoading}><FilePenLine size={18}/></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-green-500" onClick={onToggleComplete} disabled={status.isLoading}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-500" onClick={onEditStart} disabled={status.isLoading || !isAuthenticated}><FilePenLine size={18}/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-green-500" onClick={onToggleComplete} disabled={status.isLoading || !isAuthenticated}>
                                 {status.isLoading ? <Loader2 size={18} className="animate-spin" /> : item.isCompleted ? <Undo2 size={18}/> : <CheckCircle2 size={18} />}
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500" disabled={status.isLoading}><Trash2 size={18}/></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500" disabled={status.isLoading || !isAuthenticated}><Trash2 size={18}/></Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
@@ -546,7 +549,7 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
             {item.isCompleted && (
                  <div className="mt-4 pt-4 border-t">
                     {!item.photoUrl && (
-                        <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => onUploadClick(item.id)} disabled={status.isLoading}>
+                        <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => onUploadClick(item.id)} disabled={status.isLoading || !isAuthenticated}>
                             {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
                             Upload Foto Kenangan
                         </Button>
