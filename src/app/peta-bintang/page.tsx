@@ -126,20 +126,22 @@ export default function PetaBintangPage() {
 
     let uploadedPhotoUrl: string | null = null;
     if (photoFile) {
+      toast({ title: 'Mengupload foto...' });
       try {
-        toast({ title: 'Mengupload foto...' });
         let fileToUpload: Blob = photoFile;
+        // Check if it's a HEIC/HEIF file and convert it if so
         if (photoFile.name.toLowerCase().match(/\.(heic|heif)$/)) {
             const heic2any = (await import('heic2any')).default;
             const convertedBlob = await heic2any({ blob: photoFile, toType: 'image/jpeg', quality: 0.8 });
             fileToUpload = convertedBlob as Blob;
         }
+        
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
         await uploadBytes(photoStorageRef, fileToUpload);
         uploadedPhotoUrl = await getDownloadURL(photoStorageRef);
       } catch (error) {
         console.error("Photo upload error:", error);
-        toast({ variant: 'destructive', title: 'Gagal upload foto.' });
+        toast({ variant: 'destructive', title: 'Gagal upload foto.', description: 'Terjadi masalah saat konversi atau upload.' });
         setIsLoading(false);
         return;
       }
@@ -243,7 +245,7 @@ export default function PetaBintangPage() {
               <Textarea placeholder="Ceritakan kenanganmu di sini..." value={formState.story} onChange={e => setFormState({...formState, story: e.target.value})} />
               <Select 
                 onValueChange={value => setFormState({...formState, parentId: value === '_none_' ? null : value })} 
-                value={formState.parentId || '_none_'}
+                defaultValue="_none_"
               >
                 <SelectTrigger><SelectValue placeholder="Hubungkan ke kenangan lain (opsional)" /></SelectTrigger>
                 <SelectContent>
@@ -272,7 +274,7 @@ export default function PetaBintangPage() {
                   <>
                     <DialogHeader>
                         <DialogTitle className="text-2xl">{selectedMemory.title}</DialogTitle>
-                        <DialogDescription className="flex items-center gap-2 pt-1"><CalendarIcon size={14} /> {new Date(selectedMemory.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</DialogDescription>
+                        <DialogDescription className="flex items-center gap-2 pt-1"><CalendarIcon size={14} /> {selectedMemory.date ? new Date(selectedMemory.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Tanggal tidak diset'}</DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
                         {selectedMemory.photoUrl && (
@@ -280,7 +282,7 @@ export default function PetaBintangPage() {
                                 <Image src={selectedMemory.photoUrl} alt={selectedMemory.title} layout="fill" objectFit="cover" />
                             </div>
                         )}
-                        <p className="text-foreground/90 whitespace-pre-wrap">{selectedMemory.story}</p>
+                        <p className="text-foreground/90 whitespace-pre-wrap">{selectedMemory.story || 'Tidak ada cerita.'}</p>
                     </div>
                     <DialogFooter className="justify-between">
                         <Button variant="destructive" onClick={() => handleDeleteMemory(selectedMemory.id)} disabled={isLoading}>
@@ -298,3 +300,5 @@ export default function PetaBintangPage() {
     </>
   );
 }
+
+    
