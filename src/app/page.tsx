@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2 } from 'lucide-react';
 
 const menuItems = [
   {
@@ -88,9 +88,20 @@ const menuItems = [
     bgClass: 'from-rose-100 to-red-100',
     iconColor: 'text-rose-500',
   },
+  {
+    href: '/generator-puisi',
+    icon: Wand2,
+    title: 'Generator Puisi',
+    description: 'Buat puisi romantis dengan AI.',
+    bgClass: 'from-indigo-100 to-purple-200',
+    iconColor: 'text-indigo-500',
+  },
 ];
 
 export default function HomePage() {
+  // Sort menu items to keep consistent order if new items are added in the middle
+  const sortedMenuItems = menuItems.sort((a, b) => a.title.localeCompare(b.title));
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #fde6f1 0%, #e6e9f0 100%)' }}>
       <header className="text-center mb-10 md:mb-12">
@@ -102,7 +113,7 @@ export default function HomePage() {
 
       <main className="w-full max-w-4xl">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuItems.map((item) => {
+          {sortedMenuItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link href={item.href} key={item.href}>
