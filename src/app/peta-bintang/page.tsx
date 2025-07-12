@@ -112,6 +112,7 @@ export default function PetaBintangPage() {
     setNewMemoryPos({ x, y });
     setFormState({ title: '', date: '', story: '', parentId: null });
     setPhotoFile(null);
+    if(fileInputRef.current) fileInputRef.current.value = '';
     setIsFormOpen(true);
   };
 
@@ -139,6 +140,7 @@ export default function PetaBintangPage() {
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
         await uploadBytes(photoStorageRef, fileToUpload);
         uploadedPhotoUrl = await getDownloadURL(photoStorageRef);
+        toast({ title: 'Foto berhasil diupload!' });
       } catch (error) {
         console.error("Photo upload error:", error);
         toast({ variant: 'destructive', title: 'Gagal upload foto.', description: 'Terjadi masalah saat konversi atau upload.' });
@@ -300,5 +302,3 @@ export default function PetaBintangPage() {
     </>
   );
 }
-
-    

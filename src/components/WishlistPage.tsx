@@ -17,7 +17,6 @@ import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Link from 'next/link';
 import Image from 'next/image';
-import heic2any from 'heic2any';
 import { useToast } from '../hooks/use-toast';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -236,6 +235,7 @@ export default function WishlistPage() {
       let fileToUpload: Blob = file;
       const fileName = file.name.toLowerCase();
       if (fileName.match(/\.(heic|heif)$/)) {
+        const heic2any = (await import('heic2any')).default;
         const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
         fileToUpload = convertedBlob as Blob;
       }
