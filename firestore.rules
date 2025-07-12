@@ -4,34 +4,36 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Aturan untuk Secret Box
+    // Helper function to check if a user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Rules for Secret Box
     match /secret_box/{questionId} {
-      allow read, create, update, delete: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
-    // Aturan untuk Wishlist Dates
+    // Rules for Wishlist Dates
     match /wishlist_dates/{wishlistId} {
-      allow read, create, update, delete: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
     
-    // Aturan untuk Peta Bintang (Memories)
+    // Rules for Memories (Peta Bintang)
     match /memories/{memoryId} {
-        allow read, create, update, delete: if request.auth != null;
+        allow read, write: if isAuthenticated();
     }
 
-    // Aturan untuk Tic-Tac-Toe
+    // Rules for Tic-Tac-Toe Game
     match /tic_tac_toe_games/{gameId} {
-      allow read, create, update, delete: if request.auth != null;
-    }
-    
-    // Aturan untuk Tebak Gambar
-    match /tebak_gambar_games/{gameId} {
-      allow read, create, update, delete: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
-    // Aturan default yang lebih aman untuk koleksi lain
-    match /{document=**} {
-      allow read, write: if false;
+    // Rules for Pictionary Game (Tebak Gambar)
+    match /tebak_gambar_games/{gameId} {
+        allow read, write: if isAuthenticated();
     }
   }
 }
+
+    
