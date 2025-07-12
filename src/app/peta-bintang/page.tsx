@@ -301,7 +301,7 @@ export default function PetaBintangPage() {
                     <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
                         {selectedMemory.photoUrl && (
                             <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                                <Image src={selectedMemory.photoUrl} alt={selectedMemory.title} layout="fill" objectFit="cover" />
+                                <Image src={selectedMemory.photoUrl} alt={selectedMemory.title} fill className="object-cover" />
                             </div>
                         )}
                         <p className="text-foreground/90 whitespace-pre-wrap">{selectedMemory.story || 'Tidak ada cerita.'}</p>
