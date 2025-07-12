@@ -10,7 +10,7 @@
 import { ai } from '../genkit';
 import { z } from 'zod';
 import { googleAI } from '@genkit-ai/googleai';
-import { backoff } from 'cockatiel';
+import { Policy } from 'cockatiel';
 
 // Skema untuk output pertanyaan kuis
 const QuizQuestionOutputSchema = z.object({
@@ -51,7 +51,7 @@ const generateQuizFlow = ai.defineFlow(
     inputSchema: z.object({}), // Input kosong
     outputSchema: QuizQuestionOutputSchema,
     // Menambahkan mekanisme retry dengan jeda eksponensial jika terjadi error sementara
-    retrier: backoff({
+    retrier: Policy.backoff({
       maxAttempts: 3,      // Coba maksimal 3 kali
       initialDelay: 1000,  // Jeda awal 1 detik
     }),
