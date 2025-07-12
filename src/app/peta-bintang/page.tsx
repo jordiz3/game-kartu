@@ -14,7 +14,7 @@ import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Home, Loader2, Sparkles, Star, Trash2, UploadCloud, CalendarIcon, Info } from 'lucide-react';
+import { Home, Loader2, Star, Trash2, UploadCloud, CalendarIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 
@@ -104,7 +104,8 @@ export default function PetaBintangPage() {
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!skyRef.current) return;
     const target = e.target as HTMLElement;
-    if (!target.classList.contains('night-sky')) return;
+    // Ensure the click is on the sky, not on a star button
+    if (target.closest('button')) return;
     
     const rect = skyRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -121,49 +122,38 @@ export default function PetaBintangPage() {
     setIsViewOpen(true);
   };
 
-  const handlePhotoUpload = async (file: File): Promise<string | null> => {
-    setIsLoading(true);
-    toast({ title: 'Mengupload foto...' });
-
-    try {
-        const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${file.name}`);
-        const uploadResult = await uploadBytes(photoStorageRef, file);
-        const url = await getDownloadURL(uploadResult.ref);
-        toast({ title: 'Foto berhasil diupload!' });
-        return url;
-    } catch (error) {
-        console.error("Photo upload error:", error);
-        toast({ variant: 'destructive', title: 'Gagal upload foto.' });
-        return null;
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
   const handleFormSubmit = async () => {
     if (!formState.title || !newMemoryPos) {
       toast({ variant: 'destructive', title: 'Judul tidak boleh kosong.' });
       return;
     }
     setIsLoading(true);
-
     let uploadedPhotoUrl: string | null = null;
-    if (photoFile) {
-      uploadedPhotoUrl = await handlePhotoUpload(photoFile);
-    }
-
+    
     try {
+      // 1. Upload photo first, if it exists
+      if (photoFile) {
+        toast({ title: 'Mengupload foto...' });
+        const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
+        const uploadResult = await uploadBytes(photoStorageRef, photoFile);
+        uploadedPhotoUrl = await getDownloadURL(uploadResult.ref);
+        toast({ title: 'Foto berhasil diupload!' });
+      }
+
+      // 2. Add document with all data at once
       await addDoc(collection(db, 'memories'), {
         title: formState.title,
         date: formState.date,
         story: formState.story,
-        photoUrl: uploadedPhotoUrl,
+        photoUrl: uploadedPhotoUrl, // Use the URL from step 1
         position: newMemoryPos,
         parentId: formState.parentId || null,
         createdAt: serverTimestamp(),
       });
+
       toast({ title: 'Bintang kenangan berhasil ditambahkan!' });
       setIsFormOpen(false);
+      setPhotoFile(null);
     } catch (error) {
       console.error("Error adding memory:", error);
       toast({ variant: 'destructive', title: 'Gagal menyimpan kenangan.' });
@@ -222,9 +212,16 @@ export default function PetaBintangPage() {
 
         <div className="flex-grow flex items-center justify-center p-4">
             <div className="w-full h-[80vh] max-w-7xl mx-auto rounded-2xl overflow-hidden relative night-sky border border-white/10" ref={skyRef} onClick={handleSkyClick}>
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <p className="text-white/30 text-lg">Klik di mana saja untuk menambah bintang kenangan baru...</p>
-                </div>
+                {!isAuthenticated && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <Loader2 className="animate-spin h-8 w-8 text-white/50" />
+                    </div>
+                )}
+                {isAuthenticated && memories.length === 0 && (
+                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <p className="text-white/30 text-lg">Klik di mana saja untuk menambah bintang kenangan baru...</p>
+                    </div>
+                )}
                 {memories.map(memory => (
                     <StarComponent 
                         key={memory.id} 
@@ -258,7 +255,7 @@ export default function PetaBintangPage() {
                   {memories.map(m => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/*" />
+              <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/png, image/jpeg, image/gif" />
               <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
                 <UploadCloud className="mr-2" /> {photoFile ? `File: ${photoFile.name}` : 'Upload Foto'}
               </Button>

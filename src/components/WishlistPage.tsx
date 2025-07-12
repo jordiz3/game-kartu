@@ -89,11 +89,16 @@ export default function WishlistPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
 
+  // Form state
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [isHighPriority, setIsHighPriority] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [currentTab, setCurrentTab] = useState('impian');
   const [filterCategory, setFilterCategory] = useState('Semua');
@@ -144,6 +149,10 @@ export default function WishlistPage() {
     setCategory('');
     setDescription('');
     setIsHighPriority(false);
+    setPhotoFile(null);
+    if (photoInputRef.current) {
+        photoInputRef.current.value = '';
+    }
   };
 
   const handleAddItem = async () => {
@@ -151,19 +160,34 @@ export default function WishlistPage() {
       toast({ variant: 'destructive', title: 'Judulnya jangan kosong dong!' });
       return;
     }
+    setIsAdding(true);
+    let uploadedPhotoUrl: string | null = null;
+    
     try {
+      // 1. Upload photo first, if it exists
+      if (photoFile) {
+        toast({ title: 'Mengupload foto...' });
+        const imageRef = storageRef(storage, `wishlist_photos_main/${Date.now()}-${photoFile.name}`);
+        await uploadBytes(imageRef, file);
+        uploadedPhotoUrl = await getDownloadURL(imageRef);
+      }
+      
+      // 2. Add document with all data at once
       await addDoc(collection(db, 'wishlist_dates'), {
         title, location, category, description, isHighPriority,
+        photoUrl: uploadedPhotoUrl, // Use the URL from step 1
         isCompleted: false,
-        photoUrl: null,
         ratings: [],
         createdAt: serverTimestamp(),
       });
+      
       toast({ title: 'Wishlist berhasil ditambah!' });
       resetForm();
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'Gagal menambah wishlist.' });
+    } finally {
+      setIsAdding(false);
     }
   };
   
@@ -230,11 +254,11 @@ export default function WishlistPage() {
     if (!file || !itemId) return;
     
     setItemLoading(itemId, true);
-    toast({ title: 'Mengupload foto...' });
+    toast({ title: 'Mengupload foto kenangan...' });
 
     try {
       const uniqueFileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-      const imageRef = storageRef(storage, `wishlist_photos/${itemId}/${uniqueFileName}`);
+      const imageRef = storageRef(storage, `wishlist_photos_completed/${itemId}/${uniqueFileName}`);
       
       await uploadBytes(imageRef, file);
       const downloadURL = await getDownloadURL(imageRef);
@@ -323,14 +347,20 @@ export default function WishlistPage() {
           </Select>
         </div>
         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Deskripsi nge-date..." rows={3} className="mb-4" />
-        <div className="flex flex-wrap justify-between items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox id="prioritas" checked={isHighPriority} onCheckedChange={(checked) => setIsHighPriority(Boolean(checked))} />
-            <label htmlFor="prioritas" className="text-sm font-medium leading-none">Penting Banget</label>
-          </div>
-          <Button onClick={handleAddItem} className="bg-pink-500 hover:bg-pink-600">
-            <Plus className="mr-2 h-4 w-4" /> Gas Tambah
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <Button variant="outline" onClick={() => photoInputRef.current?.click()} className="w-full sm:w-auto">
+                <Camera className="mr-2 h-4 w-4" />
+                {photoFile ? `File: ${photoFile.name}` : 'Pilih Foto Utama'}
+            </Button>
+            <input type="file" ref={photoInputRef} className="hidden" accept="image/png, image/jpeg, image/gif" onChange={(e) => setPhotoFile(e.target.files ? e.target.files[0] : null)} />
+            <div className="flex items-center space-x-2">
+                <Checkbox id="prioritas" checked={isHighPriority} onCheckedChange={(checked) => setIsHighPriority(Boolean(checked))} />
+                <label htmlFor="prioritas" className="text-sm font-medium leading-none">Penting Banget</label>
+            </div>
+            <Button onClick={handleAddItem} className="bg-pink-500 hover:bg-pink-600 w-full sm:w-auto" disabled={isAdding}>
+                {isAdding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                Gas Tambah
+            </Button>
         </div>
       </Card>
 
@@ -388,7 +418,7 @@ export default function WishlistPage() {
         ref={photoUploadRef} 
         onChange={handleFileSelectedForUpload} 
         className="hidden" 
-        accept="image/*" 
+        accept="image/png, image/jpeg, image/gif"
       />
        <footer className="text-center mt-12 border-t pt-4">
          <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
@@ -444,64 +474,71 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
     
     return (
         <Card className={`p-5 shadow-sm transition-opacity ${status.isLoading ? 'opacity-50' : 'opacity-100'} ${item.isHighPriority && !item.isCompleted ? 'border-pink-300' : ''}`}>
-            <div className="flex justify-between items-start">
-                <div>
-                    <h3 className="text-xl font-bold">{item.title}</h3>
-                    {item.location ? (
-                        <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`} target="_blank" rel="noopener noreferrer" className="text-sm text-pink-600 hover:underline flex items-center gap-1 mb-2">
-                            <MapPin size={14}/> {item.location}
-                        </a>
-                    ) : (
-                         <p className="text-sm text-gray-500 mb-2 flex items-center gap-1"><MapPin size={14}/> Lokasi belum ditentuin</p>
-                    )}
+            {/* Main content of the card */}
+            <div className="flex flex-col sm:flex-row gap-4">
+                {item.photoUrl && (
+                    <div className="w-full sm:w-1/3 h-48 sm:h-auto relative rounded-lg overflow-hidden flex-shrink-0">
+                        <Image src={item.photoUrl} alt={`Foto ${item.title}`} layout="fill" objectFit="cover" />
+                    </div>
+                )}
+                <div className="flex-grow">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="text-xl font-bold">{item.title}</h3>
+                            {item.location ? (
+                                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`} target="_blank" rel="noopener noreferrer" className="text-sm text-pink-600 hover:underline flex items-center gap-1 mb-2">
+                                    <MapPin size={14}/> {item.location}
+                                </a>
+                            ) : (
+                                <p className="text-sm text-gray-500 mb-2 flex items-center gap-1"><MapPin size={14}/> Lokasi belum ditentuin</p>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-500" onClick={onEditStart} disabled={status.isLoading}><FilePenLine size={18}/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-green-500" onClick={onToggleComplete} disabled={status.isLoading}>
+                                {status.isLoading ? <Loader2 size={18} className="animate-spin" /> : item.isCompleted ? <Undo2 size={18}/> : <CheckCircle2 size={18} />}
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500" disabled={status.isLoading}><Trash2 size={18}/></Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Yakin mau hapus wishlist ini?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Aksi ini tidak bisa dibatalkan. Wishlist "{item.title}" akan dihapus permanen.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                                  <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Ya, Hapus
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    </div>
+                    <p className="text-gray-600 my-3 whitespace-pre-wrap">{item.description}</p>
+                    <div className="flex justify-between items-center text-sm">
+                        <div className="bg-pink-100 text-pink-700 font-semibold px-3 py-1 rounded-full">{item.category || 'Lainnya'}</div>
+                        {item.isHighPriority && !item.isCompleted && (
+                            <span className="text-red-500 font-bold flex items-center gap-1"><Star size={14}/>Penting</span>
+                        )}
+                    </div>
                 </div>
-                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-500" onClick={onEditStart} disabled={status.isLoading}><FilePenLine size={18}/></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-green-500" onClick={onToggleComplete} disabled={status.isLoading}>
-                         {status.isLoading ? <Loader2 size={18} className="animate-spin" /> : item.isCompleted ? <Undo2 size={18}/> : <CheckCircle2 size={18} />}
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500" disabled={status.isLoading}><Trash2 size={18}/></Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Yakin mau hapus wishlist ini?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Aksi ini tidak bisa dibatalkan. Wishlist "{item.title}" akan dihapus permanen.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Batal</AlertDialogCancel>
-                          <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            Ya, Hapus
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                 </div>
-            </div>
-            <p className="text-gray-600 my-3 whitespace-pre-wrap">{item.description}</p>
-            <div className="flex justify-between items-center text-sm">
-                 <div className="bg-pink-100 text-pink-700 font-semibold px-3 py-1 rounded-full">{item.category}</div>
-                 {item.isHighPriority && !item.isCompleted && (
-                    <span className="text-red-500 font-bold flex items-center gap-1"><Star size={14}/>Penting</span>
-                 )}
             </div>
 
+            {/* Completed section */}
             {item.isCompleted && (
                  <div className="mt-4 pt-4 border-t">
-                    {item.photoUrl ? (
-                         <div className="relative w-full h-48 rounded-lg overflow-hidden my-4">
-                             <Image src={item.photoUrl} alt={`Foto ${item.title}`} layout="fill" objectFit="cover" />
-                         </div>
-                    ) : (
-                        <Button variant="outline" className="w-full border-dashed" onClick={() => onUploadClick(item.id)} disabled={status.isLoading}>
+                    {!item.photoUrl && (
+                        <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => onUploadClick(item.id)} disabled={status.isLoading}>
                             {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
                             Upload Foto Kenangan
                         </Button>
                     )}
-                    <div className="space-y-2 mt-4">
+                    <div className="space-y-2">
                         <p className="text-sm font-semibold text-gray-600">Rating Pengalaman:</p>
                         {(item.ratings || []).length > 0 ? (
                             (item.ratings || []).map(r => (
@@ -548,3 +585,5 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         </Card>
     )
 }
+
+    
