@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map } from 'lucide-react';
 
 const menuItems = [
   {
@@ -29,6 +29,16 @@ const menuItems = [
     description: 'Mulai percakapan mendalam.',
     bgClass: 'from-blue-100 to-cyan-100',
     iconColor: 'text-blue-500',
+  },
+    {
+    href: '/peta-bintang',
+    icon: Map,
+    title: 'Peta Bintang Kenangan',
+    description: 'Abadikan kenangan sebagai rasi bintang.',
+    bgClass: 'from-gray-800 to-slate-900',
+    iconColor: 'text-yellow-300',
+    titleColor: 'text-white',
+    descColor: 'text-gray-300'
   },
   {
     href: '/truth-or-dare',
@@ -62,6 +72,14 @@ const menuItems = [
     bgClass: 'from-yellow-100 to-lime-100',
     iconColor: 'text-yellow-600',
   },
+   {
+    href: '/tts-romantis',
+    icon: Puzzle,
+    title: 'TTS Romantis',
+    description: 'Isi teka-teki tentang cinta.',
+    bgClass: 'from-green-100 to-emerald-100',
+    iconColor: 'text-green-600'
+  },
   {
     href: '/kartu-nikah',
     icon: PenSquare,
@@ -70,14 +88,6 @@ const menuItems = [
     bgClass: 'from-rose-100 to-red-100',
     iconColor: 'text-rose-500',
   },
-  {
-    href: '/tts-romantis',
-    icon: Puzzle,
-    title: 'TTS Romantis',
-    description: 'Isi teka-teki tentang cinta.',
-    bgClass: 'from-green-100 to-emerald-100',
-    iconColor: 'text-green-600'
-  }
 ];
 
 export default function HomePage() {
@@ -102,8 +112,8 @@ export default function HomePage() {
                       <Icon size={28} />
                     </div>
                     <div>
-                      <CardTitle className="text-gray-800">{item.title}</CardTitle>
-                      <CardDescription className="text-gray-600">{item.description}</CardDescription>
+                      <CardTitle className={item.titleColor || 'text-gray-800'}>{item.title}</CardTitle>
+                      <CardDescription className={item.descColor || 'text-gray-600'}>{item.description}</CardDescription>
                     </div>
                   </CardHeader>
                 </Card>
