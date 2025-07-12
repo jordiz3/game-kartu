@@ -64,7 +64,7 @@ export default function PetaBintangPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
   const [newMemoryPos, setNewMemoryPos] = useState<{ x: number; y: number } | null>(null);
-  const [formState, setFormState] = useState({ title: '', date: '', story: '', parentId: '' });
+  const [formState, setFormState] = useState<{ title: string; date: string; story: string; parentId: string | null; }>({ title: '', date: '', story: '', parentId: null });
   const [isLoading, setIsLoading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const skyRef = useRef<HTMLDivElement>(null);
@@ -103,11 +103,15 @@ export default function PetaBintangPage() {
 
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!skyRef.current) return;
+    const target = e.target as HTMLElement;
+    // Prevent opening form if a star or button is clicked
+    if (target !== skyRef.current) return;
+    
     const rect = skyRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setNewMemoryPos({ x, y });
-    setFormState({ title: '', date: '', story: '', parentId: '' });
+    setFormState({ title: '', date: '', story: '', parentId: null });
     setPhotoFile(null);
     setIsFormOpen(true);
   };
@@ -237,10 +241,13 @@ export default function PetaBintangPage() {
               <Input placeholder="Judul Kenangan (e.g., Kencan Pertama)" value={formState.title} onChange={e => setFormState({...formState, title: e.target.value})} />
               <Input type="date" value={formState.date} onChange={e => setFormState({...formState, date: e.target.value})} />
               <Textarea placeholder="Ceritakan kenanganmu di sini..." value={formState.story} onChange={e => setFormState({...formState, story: e.target.value})} />
-              <Select onValueChange={value => setFormState({...formState, parentId: value})} value={formState.parentId}>
+              <Select 
+                onValueChange={value => setFormState({...formState, parentId: value === '_none_' ? null : value })} 
+                value={formState.parentId || '_none_'}
+              >
                 <SelectTrigger><SelectValue placeholder="Hubungkan ke kenangan lain (opsional)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tidak terhubung</SelectItem>
+                  <SelectItem value="_none_">Tidak terhubung</SelectItem>
                   {memories.map(m => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
                 </SelectContent>
               </Select>
