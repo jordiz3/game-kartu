@@ -3,37 +3,20 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check if a user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
+    match /secret_box/{document=**} {
+      allow read, write: if request.auth != null;
     }
-
-    // Rules for Secret Box
-    match /secret_box/{questionId} {
-      allow read, write: if isAuthenticated();
+    match /wishlist_dates/{document=**} {
+      allow read, write: if request.auth != null;
     }
-
-    // Rules for Wishlist Dates
-    match /wishlist_dates/{wishlistId} {
-      allow read, write: if isAuthenticated();
+    match /tic_tac_toe_games/{document=**} {
+      allow read, write: if request.auth != null;
     }
-    
-    // Rules for Memories (Peta Bintang)
-    match /memories/{memoryId} {
-        allow read, write: if isAuthenticated();
+    match /tebak_gambar_games/{document=**} {
+      allow read, write: if request.auth != null;
     }
-
-    // Rules for Tic-Tac-Toe Game
-    match /tic_tac_toe_games/{gameId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    // Rules for Pictionary Game (Tebak Gambar)
-    match /tebak_gambar_games/{gameId} {
-        allow read, write: if isAuthenticated();
+     match /memories/{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
-
-    
