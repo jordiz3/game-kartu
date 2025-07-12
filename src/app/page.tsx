@@ -104,22 +104,6 @@ const menuItems = [
     bgClass: 'from-blue-100 to-purple-100',
     iconColor: 'text-blue-600'
   },
-  {
-    href: '/tic-tac-toe',
-    icon: Gamepad2,
-    title: 'Tic-Tac-Toe Online',
-    description: 'Bermain bersama secara real-time.',
-    bgClass: 'from-slate-100 to-gray-200',
-    iconColor: 'text-slate-600'
-  },
-  {
-    href: '/tebak-gambar',
-    icon: Paintbrush,
-    title: 'Tebak Gambar',
-    description: 'Gambar & tebak kata secara real-time.',
-    bgClass: 'from-amber-100 to-yellow-100',
-    iconColor: 'text-amber-600'
-  },
 ];
 
 export default function HomePage() {
