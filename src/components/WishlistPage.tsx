@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db, auth, storage } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import {
   collection,
   addDoc,
@@ -13,8 +13,8 @@ import {
   query,
   serverTimestamp,
 } from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from '../hooks/use-toast';
@@ -89,7 +89,6 @@ export default function WishlistPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
 
-  // Form state
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('');
@@ -102,8 +101,6 @@ export default function WishlistPage() {
   const [filterCategory, setFilterCategory] = useState('Semua');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemStatuses, setItemStatuses] = useState<Record<string, ItemStatus>>({});
-  
-  const [currentItemIdForUpload, setCurrentItemIdForUpload] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -151,12 +148,8 @@ export default function WishlistPage() {
   };
 
   const handleAddItem = async () => {
-    if (!title.trim()) {
-      toast({ variant: 'destructive', title: 'Judulnya jangan kosong dong!' });
-      return;
-    }
-    if (!isAuthenticated) {
-      toast({ variant: 'destructive', title: 'Anda harus terautentikasi.' });
+    if (!title.trim() || !isAuthenticated) {
+      toast({ variant: 'destructive', title: 'Judul jangan kosong dan pastikan Anda sudah login.' });
       return;
     }
     setIsAdding(true);
@@ -165,9 +158,10 @@ export default function WishlistPage() {
       let uploadedPhotoUrl: string | null = null;
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
+        const storage = getStorage();
         const imageRef = storageRef(storage, `wishlist_photos/${Date.now()}-${photoFile.name}`);
-        await uploadBytes(imageRef, photoFile);
-        uploadedPhotoUrl = await getDownloadURL(imageRef);
+        const uploadResult = await uploadBytes(imageRef, photoFile);
+        uploadedPhotoUrl = await getDownloadURL(uploadResult.ref);
       }
       
       await addDoc(collection(db, 'wishlist_dates'), {
@@ -239,27 +233,20 @@ export default function WishlistPage() {
     }
   };
 
-  const handlePhotoUploadTrigger = (itemId: string) => {
-    setCurrentItemIdForUpload(itemId);
-    const input = document.getElementById(`photo-upload-input-${itemId}`) as HTMLInputElement;
-    input?.click();
-  };
-  
-  const handleFileSelectedForUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelectedForUpload = async (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
     const file = e.target.files?.[0];
-    const itemId = currentItemIdForUpload;
-
-    if (!file || !itemId || !isAuthenticated) return;
+    if (!file || !isAuthenticated) return;
     
     setItemLoading(itemId, true);
     toast({ title: 'Mengupload foto kenangan...' });
 
     try {
+      const storage = getStorage();
       const uniqueFileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
       const imageRef = storageRef(storage, `wishlist_photos_completed/${itemId}/${uniqueFileName}`);
       
-      await uploadBytes(imageRef, file);
-      const downloadURL = await getDownloadURL(imageRef);
+      const uploadResult = await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(uploadResult.ref);
 
       const docRef = doc(db, 'wishlist_dates', itemId);
       await updateDoc(docRef, { photoUrl: downloadURL });
@@ -270,7 +257,6 @@ export default function WishlistPage() {
       toast({ variant: 'destructive', title: 'Gagal Upload Foto', description: (error as Error).message });
     } finally {
       setItemLoading(itemId, false);
-      setCurrentItemIdForUpload(null);
     }
   };
 
@@ -330,6 +316,15 @@ export default function WishlistPage() {
     return tabMatch && categoryMatch;
   });
 
+  if (!isAuthenticated) {
+     return (
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <Loader2 className="animate-spin h-10 w-10 text-pink-500 mb-4" />
+          <p className="text-gray-500">Menghubungkan ke server...</p>
+        </div>
+      );
+  }
+
   return (
     <div className="container mx-auto max-w-4xl p-4 md:p-8">
       <header className="text-center mb-8">
@@ -358,7 +353,7 @@ export default function WishlistPage() {
         </div>
         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Deskripsi nge-date..." rows={3} className="mb-4" />
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <Button asChild variant="outline" className="w-full sm:w-auto" disabled={!isAuthenticated}>
+            <Button asChild variant="outline" className="w-full sm:w-auto">
                 <label htmlFor="photo-upload-main">
                     <Camera className="mr-2 h-4 w-4" />
                     {photoFile ? `File: ${photoFile.name}` : 'Pilih Foto Utama'}
@@ -369,7 +364,7 @@ export default function WishlistPage() {
                 <Checkbox id="prioritas" checked={isHighPriority} onCheckedChange={(checked) => setIsHighPriority(Boolean(checked))} />
                 <label htmlFor="prioritas" className="text-sm font-medium leading-none">Penting Banget</label>
             </div>
-            <Button onClick={handleAddItem} className="bg-pink-500 hover:bg-pink-600 w-full sm:w-auto" disabled={isAdding || !isAuthenticated}>
+            <Button onClick={handleAddItem} className="bg-pink-500 hover:bg-pink-600 w-full sm:w-auto" disabled={isAdding}>
                 {isAdding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                 Gas Tambah
             </Button>
@@ -402,8 +397,7 @@ export default function WishlistPage() {
           </div>
           
           <div className="space-y-4">
-            {!isAuthenticated && <div className="text-center p-8"><Loader2 className="mx-auto animate-spin" /></div>}
-            {isAuthenticated && filteredWishlist.length === 0 ? (
+            {filteredWishlist.length === 0 ? (
                  <div className="text-center text-gray-500 p-8 bg-gray-50 rounded-lg">Kosong nih, belum ada plan.</div>
             ) : (
                 filteredWishlist.map(item => (
@@ -417,7 +411,6 @@ export default function WishlistPage() {
                         onEditCancel={() => setEditingItemId(null)}
                         onToggleComplete={() => handleToggleComplete(item)}
                         onDelete={() => handleDeleteItem(item.id)}
-                        onUploadClick={handlePhotoUploadTrigger}
                         onFileSelected={handleFileSelectedForUpload}
                         onUpdateRating={handleUpdateRating}
                         onAddRatingItem={handleAddRatingItem}
@@ -437,8 +430,7 @@ export default function WishlistPage() {
   );
 }
 
-// Sub-component for displaying/editing a single wishlist item
-function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onUploadClick, onFileSelected, onUpdateRating, onAddRatingItem, isAuthenticated }: any) {
+function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, onEditCancel, onToggleComplete, onDelete, onFileSelected, onUpdateRating, onAddRatingItem, isAuthenticated }: any) {
     const [editValues, setEditValues] = useState(item);
     const [isAddingRating, setIsAddingRating] = useState(false);
     const [newRatingName, setNewRatingName] = useState('');
@@ -482,7 +474,6 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
     
     return (
         <Card className={`p-5 shadow-sm transition-opacity ${status.isLoading ? 'opacity-50' : 'opacity-100'} ${item.isHighPriority && !item.isCompleted ? 'border-pink-300' : ''}`}>
-            {/* Main content of the card */}
             <div className="flex flex-col sm:flex-row gap-4">
                 {item.photoUrl && (
                     <div className="w-full sm:w-1/3 h-48 sm:h-auto relative rounded-lg overflow-hidden flex-shrink-0">
@@ -537,12 +528,11 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                 </div>
             </div>
 
-            {/* Completed section */}
             {item.isCompleted && (
                  <div className="mt-4 pt-4 border-t">
                     {!item.photoUrl && (
                         <>
-                         <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => onUploadClick(item.id)} disabled={status.isLoading || !isAuthenticated}>
+                         <Button variant="outline" className="w-full border-dashed mb-4" onClick={() => document.getElementById(`photo-upload-input-${item.id}`)?.click()} disabled={status.isLoading || !isAuthenticated}>
                             {status.isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2"/>}
                             Upload Foto Kenangan
                          </Button>
@@ -551,7 +541,7 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                             id={`photo-upload-input-${item.id}`}
                             className="hidden"
                             accept="image/png, image/jpeg"
-                            onChange={onFileSelected}
+                            onChange={(e) => onFileSelected(e, item.id)}
                          />
                         </>
                     )}

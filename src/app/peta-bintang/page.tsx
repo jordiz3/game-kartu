@@ -2,10 +2,19 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { db, auth, storage } from '../../lib/firebase';
-import { collection, addDoc, onSnapshot, query, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { auth } from '../../lib/firebase';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  doc,
+  deleteDoc,
+} from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from '../../hooks/use-toast';
@@ -16,7 +25,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Home, Loader2, Star, Trash2, UploadCloud, CalendarIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
-
 
 type Memory = {
   id: string;
@@ -83,6 +91,7 @@ export default function PetaBintangPage() {
     });
 
     if (!isAuthenticated) return;
+    const db = getFirestore();
     const q = query(collection(db, 'memories'));
     const unsubFirestore = onSnapshot(q, (snapshot) => {
       const fetchedMemories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Memory));
@@ -132,12 +141,8 @@ export default function PetaBintangPage() {
   };
 
   const handleFormSubmit = async () => {
-    if (!formState.title || !newMemoryPos) {
-      toast({ variant: 'destructive', title: 'Judul tidak boleh kosong.' });
-      return;
-    }
-    if (!isAuthenticated) {
-      toast({ variant: 'destructive', title: 'Anda harus terautentikasi.' });
+    if (!formState.title || !newMemoryPos || !isAuthenticated) {
+      toast({ variant: 'destructive', title: 'Judul tidak boleh kosong dan pastikan Anda terautentikasi.' });
       return;
     }
     setIsLoading(true);
@@ -146,12 +151,14 @@ export default function PetaBintangPage() {
       let uploadedPhotoUrl: string | null = null;
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
+        const storage = getStorage();
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
         const uploadResult = await uploadBytes(photoStorageRef, photoFile);
         uploadedPhotoUrl = await getDownloadURL(uploadResult.ref);
         toast({ title: 'Foto berhasil diupload!' });
       }
-
+      
+      const db = getFirestore();
       await addDoc(collection(db, 'memories'), {
         title: formState.title,
         date: formState.date,
@@ -177,6 +184,7 @@ export default function PetaBintangPage() {
       if (!window.confirm("Yakin mau hapus bintang kenangan ini selamanya?")) return;
       setIsLoading(true);
       try {
+          const db = getFirestore();
           await deleteDoc(doc(db, "memories", id));
           toast({ title: "Kenangan telah dihapus."});
           setIsViewOpen(false);
@@ -246,7 +254,6 @@ export default function PetaBintangPage() {
             </div>
         </div>
 
-        {/* Add/Edit Dialog */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent>
             <DialogHeader>
@@ -283,7 +290,6 @@ export default function PetaBintangPage() {
           </DialogContent>
         </Dialog>
         
-        {/* View Dialog */}
         <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
           <DialogContent>
               {selectedMemory && (
