@@ -131,11 +131,11 @@ export default function TtsRomantisPage() {
                             {/* TTS Grid */}
                             <div className="flex-shrink-0 mx-auto">
                                  <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridLayout[0].length}, minmax(0, 1fr))` }}>
-                                    {gridLayout.flat().map((cell, index) => {
-                                        const row = Math.floor(index / gridLayout[0].length);
-                                        const col = index % gridLayout[0].length;
-                                        return renderCell(gridLayout[row][col], row, col);
-                                    })}
+                                    {gridLayout.map((row, rowIndex) =>
+                                        row.map((cell, colIndex) =>
+                                            renderCell(cell, rowIndex, colIndex)
+                                        )
+                                    )}
                                 </div>
                             </div>
                             
@@ -178,4 +178,3 @@ export default function TtsRomantisPage() {
         </div>
     );
 }
-
