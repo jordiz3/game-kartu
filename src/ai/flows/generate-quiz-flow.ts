@@ -10,7 +10,6 @@
 import { ai } from '../genkit';
 import { z } from 'zod';
 import { googleAI } from '@genkit-ai/googleai';
-import { Policy } from 'cockatiel';
 
 // Skema untuk output pertanyaan kuis
 const QuizQuestionOutputSchema = z.object({
@@ -50,8 +49,6 @@ const generateQuizFlow = ai.defineFlow(
     name: 'generateQuizFlow',
     inputSchema: z.object({}), // Input kosong
     outputSchema: QuizQuestionOutputSchema,
-    // Menambahkan mekanisme retry dengan jeda eksponensial jika terjadi error sementara
-    retrier: Policy.handleAll().retry().attempts(3).backoff(1000),
   },
   async () => {
     const { output } = await prompt({});
