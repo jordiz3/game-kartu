@@ -104,7 +104,6 @@ export default function PetaBintangPage() {
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!skyRef.current) return;
     const target = e.target as HTMLElement;
-    // Ensure clicks on stars don't trigger a new memory form
     if (!target.classList.contains('night-sky')) return;
     
     const rect = skyRef.current.getBoundingClientRect();
@@ -122,6 +121,26 @@ export default function PetaBintangPage() {
     setIsViewOpen(true);
   };
 
+  const handlePhotoUpload = async (file: File) => {
+    setIsLoading(true);
+    toast({ title: 'Mengupload foto...' });
+
+    try {
+        const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${file.name}`);
+        const uploadResult = await uploadBytes(photoStorageRef, file);
+        const url = await getDownloadURL(uploadResult.ref);
+
+        toast({ title: 'Foto berhasil diupload!' });
+        return url;
+    } catch (error) {
+        console.error("Photo upload error:", error);
+        toast({ variant: 'destructive', title: 'Gagal upload foto.' });
+        return null;
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
   const handleFormSubmit = async () => {
     if (!formState.title || !newMemoryPos) {
       toast({ variant: 'destructive', title: 'Judul tidak boleh kosong.' });
@@ -131,31 +150,28 @@ export default function PetaBintangPage() {
 
     let uploadedPhotoUrl: string | null = null;
     if (photoFile) {
-      toast({ title: 'Memproses & mengupload foto...' });
-      try {
-        const heic2any = (await import('heic2any')).default;
-        let fileToUpload: Blob = photoFile;
         const fileName = photoFile.name.toLowerCase();
+        const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
+        let fileToUpload: Blob = photoFile;
 
-        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
-          const convertedBlob = await heic2any({
-            blob: photoFile,
-            toType: 'image/jpeg',
-            quality: 0.8,
-          });
-          fileToUpload = convertedBlob as Blob;
+        if (isHeic) {
+            try {
+                toast({ title: 'Mengonversi gambar HEIC...' });
+                const heic2any = (await import('heic2any')).default;
+                const convertedBlob = await heic2any({
+                    blob: photoFile,
+                    toType: 'image/jpeg',
+                    quality: 0.8,
+                });
+                fileToUpload = convertedBlob as Blob;
+            } catch (e) {
+                console.error("HEIC conversion error", e);
+                toast({ variant: 'destructive', title: 'Gagal konversi HEIC.' });
+                setIsLoading(false);
+                return;
+            }
         }
-
-        const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name.replace(/\.[^/.]+$/, ".jpg")}`);
-        await uploadBytes(photoStorageRef, fileToUpload);
-        uploadedPhotoUrl = await getDownloadURL(photoStorageRef);
-        toast({ title: 'Foto berhasil diupload!' });
-      } catch (error) {
-        console.error("Photo upload error:", error);
-        toast({ variant: 'destructive', title: 'Gagal upload foto.', description: 'Terjadi masalah saat konversi atau upload.' });
-        setIsLoading(false);
-        return;
-      }
+        uploadedPhotoUrl = await handlePhotoUpload(fileToUpload as File);
     }
 
     try {
@@ -311,3 +327,5 @@ export default function PetaBintangPage() {
     </>
   );
 }
+
+    

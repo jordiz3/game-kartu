@@ -225,26 +225,36 @@ export default function WishlistPage() {
   
   const handleFileSelectedForUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !currentItemIdForUpload) return;
-    
     const itemId = currentItemIdForUpload;
+
+    if (!file || !itemId) return;
+    
     setItemLoading(itemId, true);
     toast({ title: 'Memproses & mengupload foto...' });
+    
+    let fileToUpload: Blob = file;
+    const fileName = file.name.toLowerCase();
+    const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
+
+    if (isHeic) {
+        try {
+            toast({ title: 'Mengonversi gambar HEIC...' });
+            const heic2any = (await import('heic2any')).default;
+            const convertedBlob = await heic2any({
+                blob: file,
+                toType: 'image/jpeg',
+                quality: 0.8,
+            });
+            fileToUpload = convertedBlob as Blob;
+        } catch (error) {
+            console.error('Error converting HEIC:', error);
+            toast({ variant: 'destructive', title: 'Gagal Konversi HEIC', description: 'Coba gunakan format JPEG atau PNG.' });
+            setItemLoading(itemId, false);
+            return;
+        }
+    }
 
     try {
-      const heic2any = (await import('heic2any')).default;
-      let fileToUpload: Blob = file;
-      const fileName = file.name.toLowerCase();
-      
-      if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
-        const convertedBlob = await heic2any({
-          blob: file,
-          toType: 'image/jpeg',
-          quality: 0.8,
-        });
-        fileToUpload = convertedBlob as Blob;
-      }
-      
       const uniqueFileName = `${Date.now()}-${fileName.replace(/\s/g, '_').replace(/\.[^/.]+$/, ".jpg")}`;
       const imageRef = storageRef(storage, `wishlist_photos/${itemId}/${uniqueFileName}`);
       
@@ -560,3 +570,5 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         </Card>
     )
 }
+
+    
