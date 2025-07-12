@@ -114,7 +114,6 @@ export default function PetaBintangPage() {
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!skyRef.current || !isAuthenticated) return;
     const target = e.target as HTMLElement;
-    // Ensure the click is on the sky, not on a star button
     if (target.closest('button')) return;
     
     const rect = skyRef.current.getBoundingClientRect();
@@ -136,10 +135,15 @@ export default function PetaBintangPage() {
       toast({ variant: 'destructive', title: 'Judul tidak boleh kosong.' });
       return;
     }
+    if (!isAuthenticated) {
+      toast({ variant: 'destructive', title: 'Anda harus terautentikasi.' });
+      return;
+    }
     setIsLoading(true);
     
+    let uploadedPhotoUrl: string | null = null;
+    
     try {
-      let uploadedPhotoUrl: string | null = null;
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
@@ -310,3 +314,5 @@ export default function PetaBintangPage() {
     </>
   );
 }
+
+    

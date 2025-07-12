@@ -161,13 +161,18 @@ export default function WishlistPage() {
       toast({ variant: 'destructive', title: 'Judulnya jangan kosong dong!' });
       return;
     }
+    if (!isAuthenticated) {
+      toast({ variant: 'destructive', title: 'Anda harus terautentikasi.' });
+      return;
+    }
     setIsAdding(true);
+
+    let uploadedPhotoUrl: string | null = null;
     
     try {
-      let uploadedPhotoUrl: string | null = null;
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
-        const imageRef = storageRef(storage, `wishlist_photos_main/${Date.now()}-${photoFile.name}`);
+        const imageRef = storageRef(storage, `wishlist_photos/${Date.now()}-${photoFile.name}`);
         await uploadBytes(imageRef, photoFile);
         uploadedPhotoUrl = await getDownloadURL(imageRef);
       }
@@ -250,7 +255,7 @@ export default function WishlistPage() {
     const file = e.target.files?.[0];
     const itemId = currentItemIdForUpload;
 
-    if (!file || !itemId) return;
+    if (!file || !itemId || !isAuthenticated) return;
     
     setItemLoading(itemId, true);
     toast({ title: 'Mengupload foto kenangan...' });
@@ -601,3 +606,5 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         </Card>
     )
 }
+
+    
