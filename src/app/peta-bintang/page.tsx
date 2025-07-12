@@ -321,5 +321,4 @@ export default function PetaBintangPage() {
       </div>
     </>
   );
-
-    
+}
