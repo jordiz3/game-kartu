@@ -594,3 +594,5 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         </Card>
     )
 }
+
+    
