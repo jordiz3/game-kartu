@@ -69,6 +69,14 @@ const menuItems = [
     description: 'Kartu nikah digital Cipa & Jojo.',
     bgClass: 'from-rose-100 to-red-100',
     iconColor: 'text-rose-500',
+  },
+  {
+    href: '/tts-romantis',
+    icon: Puzzle,
+    title: 'TTS Romantis',
+    description: 'Isi teka-teki tentang cinta.',
+    bgClass: 'from-green-100 to-emerald-100',
+    iconColor: 'text-green-600'
   }
 ];
 
