@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle } from 'lucide-react';
 
 const menuItems = [
   {
@@ -61,6 +61,14 @@ const menuItems = [
     description: 'Isi kata & lihat hasilnya yang lucu.',
     bgClass: 'from-yellow-100 to-lime-100',
     iconColor: 'text-yellow-600',
+  },
+  {
+    href: '/tts-romantis',
+    icon: Puzzle,
+    title: 'TTS Romantis',
+    description: 'Uji ingatan tentang hubungan kalian.',
+    bgClass: 'from-sky-100 to-indigo-100',
+    iconColor: 'text-sky-600',
   },
   {
     href: '/kartu-nikah',
