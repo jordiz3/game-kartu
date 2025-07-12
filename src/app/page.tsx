@@ -63,14 +63,6 @@ const menuItems = [
     iconColor: 'text-yellow-600',
   },
   {
-    href: '/tts-romantis',
-    icon: Puzzle,
-    title: 'TTS Romantis',
-    description: 'Uji ingatan tentang hubungan kalian.',
-    bgClass: 'from-sky-100 to-indigo-100',
-    iconColor: 'text-sky-600',
-  },
-  {
     href: '/kartu-nikah',
     icon: PenSquare,
     title: 'Kartu Nikah Digital',
