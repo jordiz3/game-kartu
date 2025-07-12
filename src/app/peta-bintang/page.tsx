@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { auth } from '../../lib/firebase';
+import { auth } from '@/lib/firebase';
 import {
   getFirestore,
   collection,
@@ -17,14 +17,14 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useToast } from '../../hooks/use-toast';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../../components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Home, Loader2, Star, Trash2, UploadCloud, CalendarIcon } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 type Memory = {
   id: string;
