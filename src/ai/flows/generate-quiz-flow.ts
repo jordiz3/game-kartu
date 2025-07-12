@@ -19,7 +19,7 @@ const QuizQuestionOutputSchema = z.object({
 export type QuizQuestionOutput = z.infer<typeof QuizQuestionOutputSchema>;
 
 // Fungsi yang akan dipanggil oleh frontend
-export async function generateQuizQuestion(): Promise<QuizQuestionOutput> {
+export async function generateQuizQuestion(): Promise<QuizQuestionOutput | null> {
   return generateQuizFlow({});
 }
 
@@ -47,22 +47,28 @@ const generateQuizFlow = ai.defineFlow(
   {
     name: 'generateQuizFlow',
     inputSchema: z.object({}), // Input kosong
-    outputSchema: QuizQuestionOutputSchema,
+    outputSchema: QuizQuestionOutputSchema.nullable(),
   },
   async () => {
-    const { output } = await prompt({});
-    
-    // Defensive check to ensure output is not null or undefined
-    if (!output) {
-      throw new Error("AI failed to generate a response for the quiz question.");
+    try {
+      const { output } = await prompt({});
+      
+      // Defensive check to ensure output is not null or undefined
+      if (!output) {
+        console.error("AI failed to generate a response for the quiz question.");
+        return null;
+      }
+  
+      // Acak urutan pilihan jawaban untuk variasi
+      const shuffledOptions = output.options.sort(() => Math.random() - 0.5);
+      
+      return {
+        ...output,
+        options: shuffledOptions,
+      };
+    } catch (error) {
+      console.error("Error in generateQuizFlow:", error);
+      return null; // Return null on any error
     }
-
-    // Acak urutan pilihan jawaban untuk variasi
-    const shuffledOptions = output.options.sort(() => Math.random() - 0.5);
-    
-    return {
-      ...output,
-      options: shuffledOptions,
-    };
   }
 );
