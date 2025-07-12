@@ -121,7 +121,7 @@ export default function PetaBintangPage() {
     setIsViewOpen(true);
   };
 
-  const handlePhotoUpload = async (file: File) => {
+  const handlePhotoUpload = async (file: File): Promise<string | null> => {
     setIsLoading(true);
     toast({ title: 'Mengupload foto...' });
 
@@ -129,7 +129,6 @@ export default function PetaBintangPage() {
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${file.name}`);
         const uploadResult = await uploadBytes(photoStorageRef, file);
         const url = await getDownloadURL(uploadResult.ref);
-
         toast({ title: 'Foto berhasil diupload!' });
         return url;
     } catch (error) {
@@ -150,28 +149,7 @@ export default function PetaBintangPage() {
 
     let uploadedPhotoUrl: string | null = null;
     if (photoFile) {
-        const fileName = photoFile.name.toLowerCase();
-        const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
-        let fileToUpload: Blob = photoFile;
-
-        if (isHeic) {
-            try {
-                toast({ title: 'Mengonversi gambar HEIC...' });
-                const heic2any = (await import('heic2any')).default;
-                const convertedBlob = await heic2any({
-                    blob: photoFile,
-                    toType: 'image/jpeg',
-                    quality: 0.8,
-                });
-                fileToUpload = convertedBlob as Blob;
-            } catch (e) {
-                console.error("HEIC conversion error", e);
-                toast({ variant: 'destructive', title: 'Gagal konversi HEIC.' });
-                setIsLoading(false);
-                return;
-            }
-        }
-        uploadedPhotoUrl = await handlePhotoUpload(fileToUpload as File);
+      uploadedPhotoUrl = await handlePhotoUpload(photoFile);
     }
 
     try {
@@ -280,7 +258,7 @@ export default function PetaBintangPage() {
                   {memories.map(m => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/*,.heic,.heif" />
+              <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/*" />
               <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
                 <UploadCloud className="mr-2" /> {photoFile ? `File: ${photoFile.name}` : 'Upload Foto'}
               </Button>

@@ -230,35 +230,13 @@ export default function WishlistPage() {
     if (!file || !itemId) return;
     
     setItemLoading(itemId, true);
-    toast({ title: 'Memproses & mengupload foto...' });
-    
-    let fileToUpload: Blob = file;
-    const fileName = file.name.toLowerCase();
-    const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
-
-    if (isHeic) {
-        try {
-            toast({ title: 'Mengonversi gambar HEIC...' });
-            const heic2any = (await import('heic2any')).default;
-            const convertedBlob = await heic2any({
-                blob: file,
-                toType: 'image/jpeg',
-                quality: 0.8,
-            });
-            fileToUpload = convertedBlob as Blob;
-        } catch (error) {
-            console.error('Error converting HEIC:', error);
-            toast({ variant: 'destructive', title: 'Gagal Konversi HEIC', description: 'Coba gunakan format JPEG atau PNG.' });
-            setItemLoading(itemId, false);
-            return;
-        }
-    }
+    toast({ title: 'Mengupload foto...' });
 
     try {
-      const uniqueFileName = `${Date.now()}-${fileName.replace(/\s/g, '_').replace(/\.[^/.]+$/, ".jpg")}`;
+      const uniqueFileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
       const imageRef = storageRef(storage, `wishlist_photos/${itemId}/${uniqueFileName}`);
       
-      await uploadBytes(imageRef, fileToUpload);
+      await uploadBytes(imageRef, file);
       const downloadURL = await getDownloadURL(imageRef);
 
       const docRef = doc(db, 'wishlist_dates', itemId);
@@ -410,7 +388,7 @@ export default function WishlistPage() {
         ref={photoUploadRef} 
         onChange={handleFileSelectedForUpload} 
         className="hidden" 
-        accept="image/*,.heic,.heif" 
+        accept="image/*" 
       />
        <footer className="text-center mt-12 border-t pt-4">
          <Link href="/" className="text-pink-500 hover:underline inline-flex items-center gap-2">
@@ -570,5 +548,3 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         </Card>
     )
 }
-
-    
