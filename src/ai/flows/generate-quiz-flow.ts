@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Flow AI untuk menghasilkan pertanyaan kuis pengetahuan umum.
@@ -9,6 +10,7 @@
 import { ai } from '../genkit';
 import { z } from 'zod';
 import { googleAI } from '@genkit-ai/googleai';
+import { backoff } from 'cockatiel';
 
 // Skema untuk output pertanyaan kuis
 const QuizQuestionOutputSchema = z.object({
@@ -48,6 +50,11 @@ const generateQuizFlow = ai.defineFlow(
     name: 'generateQuizFlow',
     inputSchema: z.object({}), // Input kosong
     outputSchema: QuizQuestionOutputSchema,
+    // Menambahkan mekanisme retry dengan jeda eksponensial jika terjadi error sementara
+    retrier: backoff({
+      maxAttempts: 3,      // Coba maksimal 3 kali
+      initialDelay: 1000,  // Jeda awal 1 detik
+    }),
   },
   async () => {
     const { output } = await prompt({});
