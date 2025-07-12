@@ -101,6 +101,13 @@ export default function PetaBintangPage() {
       return acc;
   }, {} as Record<string, {x: number, y: number}>);
 
+  const resetForm = () => {
+    setFormState({ title: '', date: '', story: '', parentId: null });
+    setPhotoFile(null);
+    if(fileInputRef.current) fileInputRef.current.value = '';
+    setNewMemoryPos(null);
+  };
+
   const handleSkyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!skyRef.current) return;
     const target = e.target as HTMLElement;
@@ -110,10 +117,9 @@ export default function PetaBintangPage() {
     const rect = skyRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    resetForm();
     setNewMemoryPos({ x, y });
-    setFormState({ title: '', date: '', story: '', parentId: null });
-    setPhotoFile(null);
-    if(fileInputRef.current) fileInputRef.current.value = '';
     setIsFormOpen(true);
   };
 
@@ -128,10 +134,10 @@ export default function PetaBintangPage() {
       return;
     }
     setIsLoading(true);
-    let uploadedPhotoUrl: string | null = null;
     
     try {
-      // 1. Upload photo first, if it exists
+      let uploadedPhotoUrl: string | null = null;
+
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
         const photoStorageRef = storageRef(storage, `memory_photos/${Date.now()}_${photoFile.name}`);
@@ -140,12 +146,11 @@ export default function PetaBintangPage() {
         toast({ title: 'Foto berhasil diupload!' });
       }
 
-      // 2. Add document with all data at once
       await addDoc(collection(db, 'memories'), {
         title: formState.title,
         date: formState.date,
         story: formState.story,
-        photoUrl: uploadedPhotoUrl, // Use the URL from step 1
+        photoUrl: uploadedPhotoUrl,
         position: newMemoryPos,
         parentId: formState.parentId || null,
         createdAt: serverTimestamp(),
@@ -153,7 +158,7 @@ export default function PetaBintangPage() {
 
       toast({ title: 'Bintang kenangan berhasil ditambahkan!' });
       setIsFormOpen(false);
-      setPhotoFile(null);
+      resetForm();
     } catch (error) {
       console.error("Error adding memory:", error);
       toast({ variant: 'destructive', title: 'Gagal menyimpan kenangan.' });
@@ -252,7 +257,7 @@ export default function PetaBintangPage() {
                 <SelectTrigger><SelectValue placeholder="Hubungkan ke kenangan lain (opsional)" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none_">Tidak terhubung</SelectItem>
-                  {memories.map(m => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
+                  {memories.filter(m => m.id !== selectedMemory?.id).map(m => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
                 </SelectContent>
               </Select>
               <input type="file" ref={fileInputRef} onChange={e => setPhotoFile(e.target.files ? e.target.files[0] : null)} className="hidden" accept="image/png, image/jpeg, image/gif" />
@@ -302,5 +307,3 @@ export default function PetaBintangPage() {
     </>
   );
 }
-
-    

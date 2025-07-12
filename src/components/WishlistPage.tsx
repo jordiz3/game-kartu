@@ -161,21 +161,19 @@ export default function WishlistPage() {
       return;
     }
     setIsAdding(true);
-    let uploadedPhotoUrl: string | null = null;
     
     try {
-      // 1. Upload photo first, if it exists
+      let uploadedPhotoUrl: string | null = null;
       if (photoFile) {
         toast({ title: 'Mengupload foto...' });
         const imageRef = storageRef(storage, `wishlist_photos_main/${Date.now()}-${photoFile.name}`);
-        await uploadBytes(imageRef, file);
+        await uploadBytes(imageRef, photoFile);
         uploadedPhotoUrl = await getDownloadURL(imageRef);
       }
       
-      // 2. Add document with all data at once
       await addDoc(collection(db, 'wishlist_dates'), {
         title, location, category, description, isHighPriority,
-        photoUrl: uploadedPhotoUrl, // Use the URL from step 1
+        photoUrl: uploadedPhotoUrl,
         isCompleted: false,
         ratings: [],
         createdAt: serverTimestamp(),
@@ -282,9 +280,24 @@ export default function WishlistPage() {
   const handleUpdateRating = async (id: string, ratingName: string, newRating: number) => {
     const item = wishlist.find(i => i.id === id);
     if (!item) return;
+    
+    const currentRatings = item.ratings || [];
+    const existingRatingIndex = currentRatings.findIndex(r => r.name === ratingName);
 
-    const newRatings = (item.ratings || []).map(r => r.name === ratingName ? {...r, rating: newRating} : r);
-    await updateDoc(doc(db, 'wishlist_dates', id), { ratings: newRatings });
+    let newRatings;
+    if (existingRatingIndex > -1) {
+        newRatings = [...currentRatings];
+        newRatings[existingRatingIndex] = { ...newRatings[existingRatingIndex], rating: newRating };
+    } else {
+        newRatings = [...currentRatings, { name: ratingName, rating: newRating }];
+    }
+
+    try {
+        await updateDoc(doc(db, 'wishlist_dates', id), { ratings: newRatings });
+    } catch (error) {
+        console.error("Error updating rating:", error);
+        toast({ variant: 'destructive', title: 'Gagal menyimpan rating.' });
+    }
   }
 
   const handleAddRatingItem = async (id: string, name: string) => {
@@ -541,7 +554,7 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
                     <div className="space-y-2">
                         <p className="text-sm font-semibold text-gray-600">Rating Pengalaman:</p>
                         {(item.ratings || []).length > 0 ? (
-                            (item.ratings || []).map(r => (
+                            (item.ratings || []).map((r: {name: string, rating: number}) => (
                                 <div key={r.name} className="flex justify-between items-center">
                                     <p className="text-sm">{r.name}</p>
                                     <div className="flex items-center gap-1">
@@ -585,5 +598,3 @@ function WishlistItemCard({ item, status, isEditing, onEditStart, onEditSave, on
         </Card>
     )
 }
-
-    
