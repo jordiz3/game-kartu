@@ -1,9 +1,8 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, Puzzle, Star, Map, Wand2, BrainCircuit, Gamepad2, Paintbrush } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, BrainCircuit, Wand2 } from 'lucide-react';
 
 const menuItems = [
   {
@@ -113,8 +112,8 @@ export default function HomePage() {
                       <Icon size={28} />
                     </div>
                     <div>
-                      <CardTitle className={item.titleColor || 'text-gray-800'}>{item.title}</CardTitle>
-                      <CardDescription className={item.descColor || 'text-gray-600'}>{item.description}</CardDescription>
+                      <CardTitle className={'text-gray-800'}>{item.title}</CardTitle>
+                      <CardDescription className={'text-gray-600'}>{item.description}</CardDescription>
                     </div>
                   </CardHeader>
                 </Card>
