@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare, BrainCircuit, Wand2 } from 'lucide-react';
+import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare } from 'lucide-react';
 
 const menuItems = [
   {
@@ -20,14 +21,6 @@ const menuItems = [
     description: 'Rencanakan & wujudkan kencan impian.',
     bgClass: 'from-purple-100 to-indigo-100',
     iconColor: 'text-purple-500',
-  },
-   {
-    href: '/deep-talk',
-    icon: MessageSquare,
-    title: 'Kartu Deep Talk',
-    description: 'Mulai percakapan mendalam.',
-    bgClass: 'from-blue-100 to-cyan-100',
-    iconColor: 'text-blue-500',
   },
   {
     href: '/truth-or-dare',

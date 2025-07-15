@@ -6,8 +6,8 @@
  * setup allows other parts of the application to import and use the configured
  * `ai` object for defining and running AI flows.
  */
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
 // Initialize the Genkit AI toolkit with the Google AI plugin.
 // This makes Google's AI models available for use in flows.
@@ -18,4 +18,7 @@ export const ai = genkit({
       // environment variable if required.
     }),
   ],
+  // Disable tracing to avoid issues with Jaeger exporter in build environments
+  traceStore: 'none',
+  flowStateStore: 'none'
 });
