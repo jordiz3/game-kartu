@@ -20,5 +20,4 @@ export const ai = genkit({
   ],
   // Disable tracing to avoid issues with Jaeger exporter in build environments
 
-  flowStateStore: 'none'
 });
