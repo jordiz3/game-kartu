@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, MessageSquare, Flame, StretchHorizontal, Swords, BookText, PenSquare } from 'lucide-react';
+import { Mail, Heart, Flame, StretchHorizontal, BookText, PenSquare, MessageSquare } from 'lucide-react';
 
 const menuItems = [
   {
@@ -53,6 +53,14 @@ const menuItems = [
     description: 'Kartu nikah digital Cipa & Jojo.',
     bgClass: 'from-rose-100 to-red-100',
     iconColor: 'text-rose-500',
+  },
+  {
+    href: '/deep-talk',
+    icon: MessageSquare,
+    title: 'Deep Talk',
+    description: 'Kartu pertanyaan untuk obrolan mendalam.',
+    bgClass: 'from-blue-100 to-cyan-100',
+    iconColor: 'text-blue-500',
   },
 ];
 
