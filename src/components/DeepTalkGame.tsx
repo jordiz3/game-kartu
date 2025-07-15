@@ -561,81 +561,65 @@ export default function DeepTalkGame() {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-
   const selectCategory = (category: string) => {
+    let questions;
     if (category === 'Acak Semua') {
-      setCurrentQuestions([...allQuestions]);
+      questions = [...allQuestions];
       setGameTitle("Kartu Deep Talk (Acak)");
     } else {
-      setCurrentQuestions(allQuestions.filter(q => q.category === category));
+      questions = allQuestions.filter(q => q.category === category);
       setGameTitle(`Kategori: ${category}`);
     }
+    setCurrentQuestions(questions);
     setGameState('game');
-    // We will let the useEffect hook handle drawing the first card
+    setIsFlipped(false);
+    setCurrentQuestion(null); // Reset question so the front of the card shows
+    setLastQuestionIndex(-1); // Reset last index for the new category
   };
 
   const showCategorySelection = () => {
     setGameState('category');
-    setIsFlipped(false);
-    setCurrentQuestion(null);
   };
   
   const drawCard = () => {
     if (isAnimating || currentQuestions.length === 0) return;
 
     setIsAnimating(true);
-  
-    let randomIndex;
-    if (currentQuestions.length === 1) {
-      randomIndex = 0;
+    
+    // If a card is already shown, flip it back first
+    if (isFlipped) {
+      setIsFlipped(false);
+      // Wait for flip-out animation before drawing a new card
+      setTimeout(getNewCard, 300);
     } else {
+      getNewCard();
+    }
+  };
+
+  const getNewCard = () => {
+    let randomIndex;
+    // Ensure new card is different from the last one if there's more than one card
+    if (currentQuestions.length > 1) {
       do {
         randomIndex = Math.floor(Math.random() * currentQuestions.length);
       } while (randomIndex === lastQuestionIndex);
+    } else {
+      randomIndex = 0;
     }
   
     setLastQuestionIndex(randomIndex);
     const nextQuestion = currentQuestions[randomIndex];
-
-    const flipOut = () => {
-      setIsFlipped(false);
-      // Wait for flip-out animation to finish
-      setTimeout(flipIn, 300); 
-    };
-
-    const flipIn = () => {
-      setCurrentQuestion(nextQuestion);
-      setIsFlipped(true);
-       // Wait for flip-in animation to finish
-      setTimeout(() => setIsAnimating(false), 600);
-    };
-
-    if (isFlipped) {
-      // If card is already flipped, flip it back first
-      flipOut();
-    } else {
-      // If it's the first draw, just flip in
-      flipIn();
-    }
+    
+    setCurrentQuestion(nextQuestion);
+    setIsFlipped(true);
+    // Animation of flip-in takes 600ms
+    setTimeout(() => setIsAnimating(false), 600);
   };
-
-
-  useEffect(() => {
-    // Automatically draw the first card when entering the game screen
-    if(gameState === 'game' && currentQuestions.length > 0 && !currentQuestion) {
-        // A small delay to allow the screen to transition smoothly
-        const timer = setTimeout(() => {
-            drawCard();
-        }, 100);
-        return () => clearTimeout(timer);
-    }
-  }, [gameState, currentQuestions, currentQuestion]);
-
 
   return (
     <>
       {/* Layar Pemilihan Kategori */}
-      <div className={cn("w-full max-w-lg text-center transition-opacity duration-300", { 'hidden': gameState !== 'category', 'opacity-100': gameState === 'category', 'opacity-0': gameState !== 'category' })}>
+      <div className={cn("w-full max-w-lg text-center transition-all duration-500 ease-in-out", { 'absolute opacity-0 pointer-events-none': gameState !== 'category', 'relative opacity-100': gameState === 'category' })}>
         <h1 className="font-display text-4xl md:text-5xl text-gray-800">Pilih Kategori</h1>
         <p className="text-gray-600 mt-2 mb-8">Pilih topik untuk memulai percakapan.</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -652,7 +636,7 @@ export default function DeepTalkGame() {
       </div>
 
       {/* Layar Game Utama */}
-      <div className={cn("w-full flex flex-col items-center justify-center transition-opacity duration-300", { 'hidden': gameState !== 'game', 'opacity-100': gameState === 'game', 'opacity-0': gameState !== 'game'  })}>
+      <div className={cn("w-full flex flex-col items-center justify-center transition-all duration-500 ease-in-out", { 'absolute opacity-0 pointer-events-none': gameState !== 'game', 'relative opacity-100': gameState === 'game' })}>
         <div className="text-center mb-8">
           <h1 className="font-display text-4xl md:text-5xl text-gray-800">{gameTitle}</h1>
           <p className="text-gray-600 mt-2">Ambil kartu untuk memulai percakapan.</p>
