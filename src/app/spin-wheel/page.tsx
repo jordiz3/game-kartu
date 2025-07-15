@@ -24,7 +24,6 @@ export default function SpinWheelPage() {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
-  const [winnerIndex, setWinnerIndex] = useState<number | null>(null);
 
   const segmentDegrees = 360 / options.length;
   
@@ -61,7 +60,6 @@ export default function SpinWheelPage() {
 
     setIsSpinning(true);
     setWinner(null);
-    setWinnerIndex(null);
 
     const randomDegrees = Math.floor(Math.random() * 360);
     const fullRotations = Math.floor(Math.random() * 5) + 5;
@@ -71,18 +69,17 @@ export default function SpinWheelPage() {
 
     setTimeout(() => {
       const finalAngle = newRotation % 360;
-      const calculatedWinnerIndex = Math.floor(((360 - finalAngle + segmentDegrees / 2) % 360) / segmentDegrees);
+      const winningSegmentIndex = Math.floor(((360 - finalAngle + segmentDegrees / 2) % 360) / segmentDegrees);
       
-      setWinnerIndex(calculatedWinnerIndex);
-      setWinner(options[calculatedWinnerIndex]);
+      setWinner(options[winningSegmentIndex]);
       setIsSpinning(false);
     }, 7000); // Harus cocok dengan durasi transisi CSS
   };
 
   const wheelSegments = useMemo(() => {
-    const skewY = 90 - segmentDegrees;
     return options.map((option, index) => {
-      const angle = segmentDegrees * index;
+      const rotate = segmentDegrees * index;
+      const skewY = 90 - segmentDegrees;
       const backgroundColor = wheelColors[index % wheelColors.length];
       
       return (
@@ -90,11 +87,11 @@ export default function SpinWheelPage() {
           key={index}
           className="wheel-segment"
           style={{
-            transform: `rotate(${angle}deg) skewY(-${skewY}deg)`,
-            backgroundColor,
+            transform: `rotate(${rotate}deg) skewY(-${skewY}deg)`,
+            background: backgroundColor,
           }}
         >
-          <div className="wheel-text" style={{ transform: `skewY(${skewY}deg) rotate(${segmentDegrees / 2}deg)`}}>
+          <div className="wheel-text" style={{ transform: `skewY(${skewY}deg) rotate(${segmentDegrees / 2}deg)` }}>
             <span>{option}</span>
           </div>
         </li>
@@ -137,8 +134,7 @@ export default function SpinWheelPage() {
             border: 8px solid #fff;
             box-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 30px #ff6b81, 0 0 40px #ffc75f;
             overflow: hidden;
-            transition: transform 7s cubic-bezier(0.25, 0.46, 0.45, 1.01);
-            transform: rotate(0deg);
+            transition: transform 7s cubic-bezier(0.25, 0.1, 0.25, 1.0);
         }
         
         .wheel-segments {
@@ -175,11 +171,12 @@ export default function SpinWheelPage() {
             color: #1a1a2e;
             font-weight: bold;
             font-size: 14px;
+            padding-right: 20px;
         }
 
         .wheel-text span {
           display: inline-block;
-          max-width: 50%;
+          max-width: 80%;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -235,7 +232,7 @@ export default function SpinWheelPage() {
         }
       `}</style>
       
-      <div className="night-market-bg min-h-screen flex flex-col items-center justify-center p-4 text-white font-nunito overflow-hidden">
+      <div className="night-market-bg min-h-screen flex flex-col items-center justify-center p-4 text-white font-nunito overflow-x-hidden">
         <div className="container mx-auto max-w-4xl text-center">
             
           <h1 className="font-display text-5xl md:text-6xl font-bold mb-2" style={{ textShadow: '0 0 10px #fff, 0 0 20px #ff6b81' }}>
@@ -321,3 +318,5 @@ export default function SpinWheelPage() {
     </>
   );
 }
+
+    
