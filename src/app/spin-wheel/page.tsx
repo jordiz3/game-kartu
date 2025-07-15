@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Home, Plus, Trash2, Ticket } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Home, Plus, Trash2, Ticket, Award } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -12,7 +12,8 @@ import { cn } from '../../lib/utils';
 // Palet warna neon yang cerah untuk tema pasar malam
 const wheelColors = [
   '#ff6b81', '#ffc75f', '#f9f871', '#7bed9f', '#5352ed',
-  '#ff7979', '#f0932b', '#d2dae2', '#48dbfb', '#ff5252'
+  '#ff7979', '#f0932b', '#d2dae2', '#48dbfb', '#ff5252',
+  '#be2edd', '#f6e58d', '#6ab04c', '#4834d4', '#eb4d4b'
 ];
 
 const defaultOptions = ['Makan Malam', 'Nonton Film', 'Jajan Boba', 'Masak Bareng', 'Main Game', 'Olahraga'];
@@ -23,11 +24,29 @@ export default function SpinWheelPage() {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
+  const [winnerIndex, setWinnerIndex] = useState<number | null>(null);
 
   const segmentDegrees = 360 / options.length;
+  
+  // Efek untuk memunculkan kartu pemenang
+  useEffect(() => {
+    if (winner !== null) {
+      const winnerElement = document.getElementById('winner-card');
+      if (winnerElement) {
+        winnerElement.classList.remove('winner-pop-out');
+        winnerElement.classList.add('winner-pop-in');
+      }
+    } else {
+       const winnerElement = document.getElementById('winner-card');
+       if (winnerElement) {
+        winnerElement.classList.remove('winner-pop-in');
+        winnerElement.classList.add('winner-pop-out');
+       }
+    }
+  }, [winner]);
 
   const handleAddOption = () => {
-    if (newOption.trim() && !options.includes(newOption.trim())) {
+    if (newOption.trim() && !options.includes(newOption.trim()) && options.length < 15) {
       setOptions([...options, newOption.trim()]);
       setNewOption('');
     }
@@ -42,42 +61,43 @@ export default function SpinWheelPage() {
 
     setIsSpinning(true);
     setWinner(null);
+    setWinnerIndex(null);
 
-    // putaran acak + beberapa putaran penuh untuk efek dramatis
     const randomDegrees = Math.floor(Math.random() * 360);
-    const fullRotations = Math.floor(Math.random() * 5) + 5; // 5-9 putaran penuh
+    const fullRotations = Math.floor(Math.random() * 5) + 5;
     const newRotation = rotation + (360 * fullRotations) + randomDegrees;
     
     setRotation(newRotation);
 
-    // Hitung pemenang setelah animasi selesai
     setTimeout(() => {
       const finalAngle = newRotation % 360;
-      const winnerIndex = Math.floor((360 - finalAngle + segmentDegrees / 2) % 360 / segmentDegrees);
-      setWinner(options[winnerIndex]);
+      const calculatedWinnerIndex = Math.floor(((360 - finalAngle + segmentDegrees / 2) % 360) / segmentDegrees);
+      
+      setWinnerIndex(calculatedWinnerIndex);
+      setWinner(options[calculatedWinnerIndex]);
       setIsSpinning(false);
     }, 7000); // Harus cocok dengan durasi transisi CSS
   };
 
   const wheelSegments = useMemo(() => {
+    const skewY = 90 - segmentDegrees;
     return options.map((option, index) => {
       const angle = segmentDegrees * index;
       const backgroundColor = wheelColors[index % wheelColors.length];
       
       return (
-        <div
+        <li
           key={index}
           className="wheel-segment"
           style={{
-            transform: `rotate(${angle}deg)`,
-            clipPath: `polygon(50% 50%, 100% 0, 100% 100%)`,
+            transform: `rotate(${angle}deg) skewY(-${skewY}deg)`,
             backgroundColor,
           }}
         >
-          <span className="wheel-text" style={{ transform: `rotate(${segmentDegrees / 2}deg) translate(80px, -50%)`}}>
-            {option}
-          </span>
-        </div>
+          <div className="wheel-text" style={{ transform: `skewY(${skewY}deg) rotate(${segmentDegrees / 2}deg)`}}>
+            <span>{option}</span>
+          </div>
+        </li>
       );
     });
   }, [options, segmentDegrees]);
@@ -110,62 +130,112 @@ export default function SpinWheelPage() {
         }
 
         .wheel {
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          border: 8px solid #fff;
-          box-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 30px #ff6b81, 0 0 40px #ffc75f;
-          overflow: hidden;
-          position: relative;
-          transition: transform 7s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 30px #ff6b81, 0 0 40px #ffc75f;
+            overflow: hidden;
+            transition: transform 7s cubic-bezier(0.25, 0.46, 0.45, 1.01);
+            transform: rotate(0deg);
+        }
+        
+        .wheel-segments {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            border-radius: 50%;
         }
         
         .wheel-segment {
-          position: absolute;
-          width: 50%;
-          height: 100%;
-          transform-origin: 100% 50%;
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 50%;
+            transform-origin: 0% 100%;
         }
 
         .wheel-text {
-          position: absolute;
-          top: 50%;
-          left: 0;
-          color: #1a1a2e;
-          font-weight: bold;
-          font-size: 14px;
-          text-align: center;
-          width: 100px;
+            position: absolute;
+            left: -100%;
+            width: 200%;
+            height: 200%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .wheel-text span {
+          display: inline-block;
+          max-width: 50%;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
 
         .wheel-pointer {
-          position: absolute;
-          top: -20px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 0;
-          height: 0;
-          border-left: 25px solid transparent;
-          border-right: 25px solid transparent;
-          border-top: 40px solid #f9f871;
-          z-index: 10;
-          filter: drop-shadow(0 -5px 5px rgba(249, 248, 113, 0.7));
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 35px solid #f9f871;
+            z-index: 10;
+            filter: drop-shadow(0 -5px 5px rgba(249, 248, 113, 0.7));
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .is-spinning .wheel-pointer {
+            animation: pointer-bob 0.5s infinite ease-in-out;
+        }
+        
+        @keyframes pointer-bob {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
         }
         
         .winner-card {
-            animation: winner-pop 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            opacity: 0;
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .winner-pop-in {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        .winner-pop-out {
+            opacity: 0;
+            transform: scale(0.8) translateY(20px);
         }
         
-        @keyframes winner-pop {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes glow {
+          0% { box-shadow: 0 0 5px #ffc75f, 0 0 10px #ffc75f, 0 0 15px #ffc75f; }
+          50% { box-shadow: 0 0 20px #ff6b81, 0 0 30px #ff6b81, 0 0 40px #ff6b81; }
+          100% { box-shadow: 0 0 5px #ffc75f, 0 0 10px #ffc75f, 0 0 15px #ffc75f; }
+        }
+
+        .glowing-border {
+          animation: glow 3s infinite;
         }
       `}</style>
       
-      <div className="night-market-bg min-h-screen flex flex-col items-center justify-center p-4 text-white font-nunito">
+      <div className="night-market-bg min-h-screen flex flex-col items-center justify-center p-4 text-white font-nunito overflow-hidden">
         <div className="container mx-auto max-w-4xl text-center">
             
           <h1 className="font-display text-5xl md:text-6xl font-bold mb-2" style={{ textShadow: '0 0 10px #fff, 0 0 20px #ff6b81' }}>
@@ -173,33 +243,37 @@ export default function SpinWheelPage() {
           </h1>
           <p className="text-gray-300 text-lg mb-6">Putar Roda Keberuntungan untuk Menentukan Pilihan!</p>
 
-          <div className="flex flex-col lg:flex-row items-start gap-8">
+          <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
             {/* Roda Putar */}
             <div className="flex-1 w-full flex flex-col items-center">
                 <div className="wheel-container">
-                    <div className="wheel-pointer"></div>
+                    <div className={cn("wheel-pointer", { 'is-spinning': isSpinning })}></div>
                     <div className="wheel" style={{ transform: `rotate(${rotation}deg)` }}>
-                        {wheelSegments}
+                        <ul className="wheel-segments">
+                            {wheelSegments}
+                        </ul>
                     </div>
                     <Button 
                         onClick={handleSpin} 
                         disabled={isSpinning || options.length < 2}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white text-[#1a1a2e] text-lg font-bold border-4 border-yellow-300 hover:bg-yellow-200 disabled:opacity-50">
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white text-[#1a1a2e] text-lg font-bold border-4 border-yellow-300 hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed">
                         {isSpinning ? '...' : 'PUTAR!'}
                     </Button>
                 </div>
-                {winner && (
-                    <Card className="winner-card bg-black/50 border-yellow-400 text-white mt-4 p-4 text-center">
-                        <CardHeader>
-                            <CardTitle className="text-2xl text-yellow-300 flex items-center justify-center gap-2">
-                                <Ticket/> Pemenangnya Adalah...
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-4xl font-bold">{winner}</p>
-                        </CardContent>
-                    </Card>
-                )}
+                <div id="winner-card" className="winner-card min-w-[300px] mt-4">
+                  {winner && (
+                      <Card className="bg-black/50 border-yellow-400 text-white p-4 text-center glowing-border">
+                          <CardHeader>
+                              <CardTitle className="text-2xl text-yellow-300 flex items-center justify-center gap-2">
+                                  <Award/> Pemenangnya Adalah...
+                              </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                              <p className="text-4xl font-bold">{winner}</p>
+                          </CardContent>
+                      </Card>
+                  )}
+                </div>
             </div>
 
             {/* Panel Kontrol */}
@@ -218,7 +292,7 @@ export default function SpinWheelPage() {
                       className="bg-gray-800 border-gray-600 text-white"
                       onKeyDown={(e) => e.key === 'Enter' && handleAddOption()}
                     />
-                    <Button onClick={handleAddOption} size="icon" variant="secondary">
+                    <Button onClick={handleAddOption} size="icon" variant="secondary" disabled={options.length >= 15}>
                       <Plus />
                     </Button>
                   </div>
