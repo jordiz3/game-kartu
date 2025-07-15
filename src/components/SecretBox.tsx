@@ -19,7 +19,6 @@ import { Textarea } from './ui/textarea';
 import { cn } from '../lib/utils';
 import Link from 'next/link';
 import { useToast } from "../hooks/use-toast";
-import { suggestQuestion } from '../ai/flows/suggest-question-flow';
 
 
 type Question = {
@@ -42,7 +41,6 @@ export default function SecretBox() {
   const [questionInput, setQuestionInput] = useState('');
   const [answerInputs, setAnswerInputs] = useState<AnswerInputs>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isSuggesting, setIsSuggesting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -90,26 +88,6 @@ export default function SecretBox() {
 
   const handleAnswerInputChange = (id: string, value: string) => {
     setAnswerInputs((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleSuggestQuestion = async () => {
-    setIsSuggesting(true);
-    try {
-      const result = await suggestQuestion({
-        currentUser: currentUser,
-        recipient: currentUser === 'cipa' ? 'jojo' : 'cipa',
-      });
-      setQuestionInput(result.suggestedQuestion);
-    } catch (error) {
-      console.error('Error suggesting question:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Gagal Dapat Saran',
-        description: 'Lagi nggak dapet ide nih, coba tanya manual dulu ya.',
-      });
-    } finally {
-      setIsSuggesting(false);
-    }
   };
 
   const addQuestion = async () => {
@@ -230,19 +208,6 @@ export default function SecretBox() {
               className="focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition"
             />
              <div className="flex flex-col sm:flex-row gap-2 mt-4">
-              <Button
-                onClick={handleSuggestQuestion}
-                variant="outline"
-                className="btn w-full sm:w-auto"
-                disabled={isSuggesting}
-              >
-                {isSuggesting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
-                Sarankan Pertanyaan
-              </Button>
               <Button
                 onClick={addQuestion}
                 className="btn w-full sm:flex-grow bg-pink-500 text-white font-bold py-3 text-base hover:bg-pink-600"

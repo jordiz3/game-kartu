@@ -21,7 +21,7 @@ const menuItems = [
     bgClass: 'from-purple-100 to-indigo-100',
     iconColor: 'text-purple-500',
   },
-  {
+   {
     href: '/deep-talk',
     icon: MessageSquare,
     title: 'Kartu Deep Talk',
@@ -45,14 +45,6 @@ const menuItems = [
     bgClass: 'from-teal-100 to-green-100',
     iconColor: 'text-teal-500',
   },
-  {
-    href: '/choose-adventure',
-    icon: Swords,
-    title: 'Petualangan Ajaib',
-    description: 'Pilih jalan ceritamu sendiri.',
-    bgClass: 'from-gray-200 to-slate-200',
-    iconColor: 'text-gray-600',
-  },
    {
     href: '/bikin-cerita-absurd',
     icon: BookText,
@@ -68,22 +60,6 @@ const menuItems = [
     description: 'Kartu nikah digital Cipa & Jojo.',
     bgClass: 'from-rose-100 to-red-100',
     iconColor: 'text-rose-500',
-  },
-  {
-    href: '/generator-puisi',
-    icon: Wand2,
-    title: 'Generator Puisi',
-    description: 'Buat puisi romantis dengan AI.',
-    bgClass: 'from-indigo-100 to-purple-200',
-    iconColor: 'text-indigo-500',
-  },
-   {
-    href: '/kuis-pengetahuan',
-    icon: BrainCircuit,
-    title: 'Kuis Pengetahuan',
-    description: 'Uji wawasan dengan kuis seru.',
-    bgClass: 'from-blue-100 to-purple-100',
-    iconColor: 'text-blue-600'
   },
 ];
 
