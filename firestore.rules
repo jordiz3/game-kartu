@@ -2,18 +2,14 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Secret Box: Allow authenticated users to read/write their own questions/answers
-    match /secret_box/{questionId} {
+
+    // Wishlist: Allow read/write for authenticated users
+    match /wishlist_dates/{document=**} {
       allow read, write: if request.auth != null;
     }
-    
-    // Wishlist Dates: Allow authenticated users to read/write
-    match /wishlist_dates/{wishlistId} {
-        allow read, write: if request.auth != null;
-    }
 
-    // Peta Bintang Kenangan: Allow authenticated users to read/write
-    match /memories/{memoryId} {
+    // SecretBox: Allow read/write for authenticated users
+    match /secret_box/{document=**} {
       allow read, write: if request.auth != null;
     }
   }
