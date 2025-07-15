@@ -25,7 +25,7 @@ export default function SpinWheelPage() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
 
-  const segmentDegrees = 360 / options.length;
+  const segmentDegrees = options.length > 0 ? 360 / options.length : 0;
   
   // Efek untuk memunculkan kartu pemenang
   useEffect(() => {
@@ -77,6 +77,7 @@ export default function SpinWheelPage() {
   };
 
   const wheelSegments = useMemo(() => {
+    if (options.length === 0) return null;
     return options.map((option, index) => {
       const rotate = segmentDegrees * index;
       const skewY = 90 - segmentDegrees;
@@ -318,5 +319,3 @@ export default function SpinWheelPage() {
     </>
   );
 }
-
-    
