@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, Flame, StretchHorizontal, BookText, PenSquare, MessageSquare } from 'lucide-react';
+import { Mail, Heart, Flame, StretchHorizontal, BookText, PenSquare, MessageSquare, Ticket } from 'lucide-react';
 
 const menuItems = [
   {
@@ -62,6 +62,14 @@ const menuItems = [
     bgClass: 'from-blue-100 to-cyan-100',
     iconColor: 'text-blue-500',
   },
+  {
+    href: '/spin-wheel',
+    icon: Ticket,
+    title: 'Spin Wheel',
+    description: 'Putar roda keberuntungan untuk menentukan pilihan.',
+    bgClass: 'from-amber-100 to-orange-100',
+    iconColor: 'text-amber-600'
+  }
 ];
 
 export default function HomePage() {
