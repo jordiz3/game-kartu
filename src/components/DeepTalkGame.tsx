@@ -521,7 +521,7 @@ const allQuestions: Question[] = [
     { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu syukuri tentang aku hari ini?" },
     { category: "Kesenangan Sederhana", question: "Apa satu hal yang kamu harap aku tahu tentangmu tanpa perlu kamu katakan?" },
     { category: "Kesenangan Sederhana", question: "Apa yang membuatmu merasa optimis tentang masa depan?" },
-    { category: "Kesenangan Sederhana", question: "Apa hal yang membuatmu merasa paling kreatif?" },
+    { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu merasa paling kreatif?" },
     { category: "Kesenangan Sederhana", question: "Apa yang akan kamu lakukan jika memiliki satu jam ekstra dalam sehari?" },
     { category: "Kesenangan Sederhana", question: "Apa yang kamu anggap sebagai kemewahan sejati dalam hidup?" },
     { category: "Kesenangan Sederhana", question: "Apa hal yang paling kamu nikmati dari kesendirian?" },
@@ -610,10 +610,13 @@ export default function DeepTalkGame() {
     setLastQuestionIndex(randomIndex);
     const nextQuestion = currentQuestions[randomIndex];
     
-    setCurrentQuestion(nextQuestion);
-    setIsFlipped(true);
-    // Animation of flip-in takes 600ms
-    setTimeout(() => setIsAnimating(false), 600);
+    // Defer state updates to allow CSS transitions to start
+    setTimeout(() => {
+        setCurrentQuestion(nextQuestion);
+        setIsFlipped(true);
+        // Animation of flip-in takes 600ms
+        setTimeout(() => setIsAnimating(false), 600);
+    }, 50); // Small delay to ensure flip-back animation can start
   };
 
   return (
