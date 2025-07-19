@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Mail, Heart, Flame, StretchHorizontal, BookText, PenSquare, MessageSquare, Ticket } from 'lucide-react';
+import { Mail, Heart, Flame, StretchHorizontal, BookText, PenSquare, MessageSquare, Ticket, RefreshCw } from 'lucide-react';
 
 const menuItems = [
   {
@@ -69,6 +69,14 @@ const menuItems = [
     description: 'Putar roda keberuntungan untuk menentukan pilihan.',
     bgClass: 'from-amber-100 to-orange-100',
     iconColor: 'text-amber-600'
+  },
+  {
+    href: '/parafrase',
+    icon: RefreshCw,
+    title: 'Alat Parafrase',
+    description: 'Tulis ulang paragraf dengan AI.',
+    bgClass: 'from-cyan-100 to-sky-100',
+    iconColor: 'text-cyan-600'
   }
 ];
 
