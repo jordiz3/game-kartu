@@ -1,5 +1,5 @@
 /**
- * @fileoverview This file initializes and configures the Genkit AI toolkit.
+ * @fileoverview This file initializes and a aiconfigures the Genkit AI toolkit.
  *
  * It sets up the necessary plugins, in this case, the Google AI plugin for
  * integrating with Google's generative AI models (like Gemini). This centralized
@@ -14,8 +14,7 @@ import { googleAI } from '@genkit-ai/googleai';
 export const ai = genkit({
   plugins: [
     googleAI({
-      // The API key is automatically sourced from the GOOGLE_API_KEY
-      // environment variable if required.
+      apiKey: process.env.GOOGLE_API_KEY,
     }),
   ],
   // Disable tracing to avoid issues with Jaeger exporter in build environments
