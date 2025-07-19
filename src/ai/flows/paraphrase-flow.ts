@@ -3,8 +3,9 @@
 
 /**
  * @fileOverview A Genkit flow for paraphrasing text in different styles.
+ * This file defines the core AI logic and is only meant to be called from server-side code.
  *
- * - paraphraseParagraph - A function that takes a paragraph and returns three variations.
+ * - paraphraseFlow - The main Genkit flow.
  * - ParaphraseInput - The input type for the flow.
  * - ParaphraseOutput - The return type for the flow.
  */
@@ -26,14 +27,8 @@ export const ParaphraseOutputSchema = z.object({
 });
 export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
-// Define the main function that will be called from the client.
-// This is a server action that wraps the Genkit flow.
-export async function paraphraseParagraph(input: ParaphraseInput): Promise<ParaphraseOutput> {
-  return await paraphraseFlow(input);
-}
 
 // Define the prompt with structured input and output using Zod schemas.
-// This is the correct way to request structured JSON output in Genkit 1.x.
 const paraphrasePrompt = ai.definePrompt({
   name: 'paraphrasePrompt',
   input: { schema: ParaphraseInputSchema },
@@ -56,7 +51,7 @@ const paraphrasePrompt = ai.definePrompt({
 });
 
 // Define the Genkit flow that orchestrates the AI call.
-const paraphraseFlow = ai.defineFlow(
+export const paraphraseFlow = ai.defineFlow(
   {
     name: 'paraphraseFlow',
     inputSchema: ParaphraseInputSchema,

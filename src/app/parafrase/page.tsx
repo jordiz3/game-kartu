@@ -8,7 +8,9 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Textarea } from '../../components/ui/textarea';
 import { useToast } from '../../hooks/use-toast';
-import { paraphraseParagraph, type ParaphraseOutput } from '../../ai/flows/paraphrase-flow';
+import { paraphraseParagraph } from './actions';
+import type { ParaphraseOutput } from '../../ai/flows/paraphrase-flow';
+
 
 export default function ParafrasePage() {
   const [originalText, setOriginalText] = useState('');
@@ -31,6 +33,9 @@ export default function ParafrasePage() {
 
     try {
       const result = await paraphraseParagraph({ text: originalText });
+      if (!result) {
+        throw new Error('AI did not return a result.');
+      }
       setParaphrasedResults(result);
     } catch (error) {
       console.error('Paraphrasing error:', error);
