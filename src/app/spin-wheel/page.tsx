@@ -47,6 +47,7 @@ export default function SpinWheelCustomPage() {
         ctx.translate(radius, radius);
         ctx.rotate(currentRotation.current);
         
+        // Draw segments color
         segments.current.forEach((segment, i) => {
             const angle = i * segmentAngle;
             
@@ -56,9 +57,46 @@ export default function SpinWheelCustomPage() {
             ctx.closePath();
             ctx.fillStyle = segment.color;
             ctx.fill();
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-            ctx.lineWidth = 4;
+        });
+
+        // Draw Ferris Wheel structure and spokes
+        segments.current.forEach((segment, i) => {
+            const angle = i * segmentAngle;
+            ctx.save();
+            ctx.rotate(angle);
+            
+            // Draw spoke
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(radius - 5, 0);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.lineWidth = 2;
             ctx.stroke();
+
+            ctx.restore();
+        });
+
+        // Draw outer and inner rings for Ferris wheel effect
+        ctx.beginPath();
+        ctx.arc(0, 0, radius - 5, 0, 2 * Math.PI);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.lineWidth = 10;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.5, 0, 2 * Math.PI);
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 15, 0, 2 * Math.PI);
+        ctx.fillStyle = "#facc15"; // yellow-400 for center hub
+        ctx.fill();
+
+
+        // Draw text labels
+        segments.current.forEach((segment, i) => {
+             const angle = i * segmentAngle;
 
             ctx.save();
             ctx.rotate(angle + segmentAngle / 2);
@@ -77,9 +115,10 @@ export default function SpinWheelCustomPage() {
                 }
                 label += '...';
             }
-            ctx.fillText(label, radius - 25, 5);
+            ctx.fillText(label, radius - 30, 5);
             ctx.restore();
         });
+
         ctx.restore();
     };
 
@@ -143,26 +182,24 @@ export default function SpinWheelCustomPage() {
         }
 
         const spinAngle = Math.random() * 15 + 15;
-        const destinationAngle = currentRotation.current + spinAngle * 2 * Math.PI;
         let start: number | null = null;
         const duration = 5000;
+        const startRotation = currentRotation.current;
+        const endRotation = startRotation + spinAngle * 2 * Math.PI;
 
         const animate = (timestamp: number) => {
             if (!start) start = timestamp;
             const progress = timestamp - start;
-            const easeOutQuart = 1 - Math.pow(1 - (progress / duration), 5);
             
-            const newRotation = currentRotation.current + (destinationAngle - currentRotation.current) * easeOutQuart;
+            const easeOutQuint = 1 - Math.pow(1 - progress / duration, 5);
+            currentRotation.current = startRotation + (endRotation - startRotation) * easeOutQuint;
 
-            const tempRotation = currentRotation.current;
-            currentRotation.current = newRotation;
             drawWheel();
-            currentRotation.current = tempRotation;
             
             if (progress < duration) {
                 requestAnimationFrame(animate);
             } else {
-                currentRotation.current = destinationAngle;
+                currentRotation.current = endRotation;
                 drawWheel();
                 displayResult();
                 isSpinning.current = false;
@@ -191,6 +228,7 @@ export default function SpinWheelCustomPage() {
             updateButton?.removeEventListener('click', updateWheelFromInput);
             spinButton?.removeEventListener('click', spin);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
