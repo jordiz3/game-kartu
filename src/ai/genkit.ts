@@ -11,12 +11,9 @@ import { googleAI } from '@genkit-ai/googleai';
 
 // Initialize the Genkit AI toolkit with the Google AI plugin.
 // This makes Google's AI models available for use in flows.
+// Genkit will automatically look for the GOOGLE_API_KEY environment variable.
 export const ai = genkit({
   plugins: [
-    googleAI({
-      apiKey: process.env.GOOGLE_API_KEY,
-    }),
+    googleAI(),
   ],
-  // Disable tracing to avoid issues with Jaeger exporter in build environments
-
 });

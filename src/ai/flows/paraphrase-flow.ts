@@ -12,48 +12,48 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-// Mendefinisikan skema input menggunakan Zod
+// Define the input schema using Zod
 const ParaphraseInputSchema = z.object({
-  text: z.string().describe('Teks atau paragraf asli yang akan diparafrase.'),
+  text: z.string().describe('The original text or paragraph to be paraphrased.'),
 });
 export type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
 
-// Mendefinisikan skema output menggunakan Zod
+// Define the output schema using Zod
 const ParaphraseOutputSchema = z.object({
-  formal: z.string().describe('Versi paragraf yang ditulis ulang dengan gaya formal dan profesional.'),
-  simple: z.string().describe('Versi paragraf yang ditulis ulang dengan gaya yang sederhana dan mudah dimengerti.'),
-  creative: z.string().describe('Versi paragraf yang ditulis ulang dengan gaya yang lebih kreatif, imajinatif, dan ekspresif.'),
+  formal: z.string().describe('A version of the paragraph rewritten in a formal and professional style.'),
+  simple: z.string().describe('A version of the paragraph rewritten in a simple and easy-to-understand style.'),
+  creative: z.string().describe('A version of the paragraph rewritten in a more creative, imaginative, and expressive style.'),
 });
 export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
-// Fungsi wrapper yang akan dipanggil dari frontend
+// Wrapper function to be called from the frontend
 export async function paraphraseParagraph(input: ParaphraseInput): Promise<ParaphraseOutput> {
   return paraphraseFlow(input);
 }
 
-// Mendefinisikan prompt untuk model AI
+// Define the prompt for the AI model
 const paraphrasePrompt = ai.definePrompt({
   name: 'paraphrasePrompt',
   input: { schema: ParaphraseInputSchema },
   output: { schema: ParaphraseOutputSchema },
   prompt: `
-    Anda adalah seorang ahli bahasa dan penulis profesional.
-    Tugas Anda adalah memparafrasekan teks yang diberikan ke dalam tiga gaya yang berbeda.
-    Pastikan setiap versi memiliki makna yang sama dengan teks asli tetapi dengan pilihan kata, struktur kalimat, dan nuansa yang berbeda.
+    You are an expert linguist and professional writer.
+    Your task is to paraphrase the given text into three different styles.
+    Ensure each version has the same meaning as the original text but with different word choices, sentence structures, and nuances.
 
-    Teks Asli:
+    Original Text:
     {{{text}}}
 
-    Instruksi:
-    1.  **Gaya Formal**: Tulis ulang teks dengan bahasa yang baku, terstruktur, dan cocok untuk konteks akademis atau bisnis. Hindari bahasa gaul dan gunakan kosa kata yang lebih kaya.
-    2.  **Gaya Sederhana**: Tulis ulang teks dengan bahasa yang lugas, jelas, dan mudah dipahami oleh semua kalangan. Gunakan kalimat-kalimat pendek dan langsung ke intinya.
-    3.  **Gaya Kreatif**: Tulis ulang teks dengan cara yang lebih imajinatif dan ekspresif. Gunakan metafora, analogi, atau gaya bercerita untuk menyampaikan pesan dengan cara yang unik dan menarik.
+    Instructions:
+    1.  **Formal Style**: Rewrite the text using standard, structured language suitable for academic or business contexts. Avoid slang and use a richer vocabulary.
+    2.  **Simple Style**: Rewrite the text using straightforward, clear language that is easy for everyone to understand. Use short sentences and get straight to the point.
+    3.  **Creative Style**: Rewrite the text in a more imaginative and expressive way. Use metaphors, analogies, or a storytelling style to convey the message in a unique and engaging manner.
 
-    Pastikan Anda menghasilkan output dalam format JSON yang sesuai dengan skema yang diminta.
+    Make sure you produce the output in a JSON format that matches the requested schema.
   `,
 });
 
-// Mendefinisikan flow Genkit
+// Define the Genkit flow
 const paraphraseFlow = ai.defineFlow(
   {
     name: 'paraphraseFlow',
@@ -61,12 +61,12 @@ const paraphraseFlow = ai.defineFlow(
     outputSchema: ParaphraseOutputSchema,
   },
   async (input) => {
-    // Memanggil prompt dan menunggu respons dari model AI
+    // Call the prompt and wait for the AI model's response
     const { output } = await paraphrasePrompt(input);
 
-    // Mengembalikan output jika ada, atau melempar error jika tidak ada output
+    // Return the output if it exists, or throw an error if not
     if (!output) {
-      throw new Error('Gagal menghasilkan parafrase. Model tidak memberikan output.');
+      throw new Error('Failed to generate paraphrase. The model did not provide an output.');
     }
     
     return output;
