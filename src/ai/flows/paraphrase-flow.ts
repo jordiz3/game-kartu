@@ -5,7 +5,7 @@
  * @fileOverview A Genkit flow for paraphrasing text in different styles.
  * This file defines the core AI logic and is only meant to be called from server-side code.
  *
- * - paraphraseFlow - The main Genkit flow.
+ * - callParaphraseFlow - The exported function to call the Genkit flow.
  * - ParaphraseInput - The input type for the flow.
  * - ParaphraseOutput - The return type for the flow.
  */
@@ -51,7 +51,7 @@ const paraphrasePrompt = ai.definePrompt({
 });
 
 // Define the Genkit flow that orchestrates the AI call.
-export const paraphraseFlow = ai.defineFlow(
+const paraphraseFlow = ai.defineFlow(
   {
     name: 'paraphraseFlow',
     inputSchema: ParaphraseInputSchema,
@@ -65,3 +65,8 @@ export const paraphraseFlow = ai.defineFlow(
     return output;
   }
 );
+
+// Exported wrapper function to be called by server actions.
+export async function callParaphraseFlow(input: ParaphraseInput): Promise<ParaphraseOutput> {
+    return paraphraseFlow(input);
+}
