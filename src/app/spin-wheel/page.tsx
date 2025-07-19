@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, Plus, Trash2, Ticket, Award } from 'lucide-react';
+import { Home, Plus, Trash2, Award } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -26,8 +26,7 @@ export default function SpinWheelPage() {
   const [winner, setWinner] = useState<string | null>(null);
 
   const segmentDegrees = options.length > 0 ? 360 / options.length : 0;
-  
-  // Efek untuk memunculkan kartu pemenang
+
   useEffect(() => {
     if (winner !== null) {
       const winnerElement = document.getElementById('winner-card');
@@ -68,37 +67,30 @@ export default function SpinWheelPage() {
     setRotation(newRotation);
 
     setTimeout(() => {
-      const finalAngle = newRotation % 360;
-      const winningSegmentIndex = Math.floor(((360 - finalAngle + segmentDegrees / 2) % 360) / segmentDegrees);
+      const finalRotation = newRotation % 360;
+      const totalOptions = options.length;
+      const pointerOffset = 90; // Pointer is at the top (pointing down, so -90deg from x-axis)
+      const normalizedRotation = (360 - finalRotation + pointerOffset) % 360;
+      const winningSegmentIndex = Math.floor(normalizedRotation / segmentDegrees);
       
       setWinner(options[winningSegmentIndex]);
       setIsSpinning(false);
-    }, 7000); // Harus cocok dengan durasi transisi CSS
+    }, 7000);
   };
-
-  const wheelSegments = useMemo(() => {
-    if (options.length === 0) return null;
-    return options.map((option, index) => {
-      const rotate = segmentDegrees * index;
-      const skewY = 90 - segmentDegrees;
-      const backgroundColor = wheelColors[index % wheelColors.length];
-      
-      return (
-        <li
-          key={index}
-          className="wheel-segment"
-          style={{
-            transform: `rotate(${rotate}deg) skewY(-${skewY}deg)`,
-            background: backgroundColor,
-          }}
-        >
-          <div className="wheel-text" style={{ transform: `skewY(${skewY}deg) rotate(${segmentDegrees / 2}deg)` }}>
-            <span>{option}</span>
-          </div>
-        </li>
-      );
+  
+  const wheelStyle = useMemo(() => {
+    if (options.length === 0) return {};
+    const gradientParts = options.map((_, index) => {
+        const color = wheelColors[index % wheelColors.length];
+        const start = segmentDegrees * index;
+        const end = segmentDegrees * (index + 1);
+        return `${color} ${start}deg ${end}deg`;
     });
-  }, [options, segmentDegrees]);
+    return {
+        background: `conic-gradient(${gradientParts.join(', ')})`,
+        transform: `rotate(${rotation}deg)`,
+    };
+  }, [options, segmentDegrees, rotation]);
 
   return (
     <>
@@ -134,53 +126,31 @@ export default function SpinWheelPage() {
             border-radius: 50%;
             border: 8px solid #fff;
             box-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 30px #ff6b81, 0 0 40px #ffc75f;
-            overflow: hidden;
             transition: transform 7s cubic-bezier(0.25, 0.1, 0.25, 1.0);
         }
         
-        .wheel-segments {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            border-radius: 50%;
-        }
-        
-        .wheel-segment {
-            overflow: hidden;
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 50%;
-            height: 50%;
-            transform-origin: 0% 100%;
-        }
-
         .wheel-text {
             position: absolute;
-            left: -100%;
-            width: 200%;
-            height: 200%;
-            text-align: center;
+            top: 50%;
+            left: 50%;
+            width: 50%;
+            transform-origin: 0% 0%;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             color: #1a1a2e;
             font-weight: bold;
             font-size: 14px;
-            padding-right: 20px;
+            padding-left: 15px;
         }
 
         .wheel-text span {
-          display: inline-block;
-          max-width: 80%;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+            display: inline-block;
+            max-width: 80%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transform: rotate(-90deg); /* Counter-rotate text to be readable */
         }
 
         .wheel-pointer {
@@ -246,10 +216,18 @@ export default function SpinWheelPage() {
             <div className="flex-1 w-full flex flex-col items-center">
                 <div className="wheel-container">
                     <div className={cn("wheel-pointer", { 'is-spinning': isSpinning })}></div>
-                    <div className="wheel" style={{ transform: `rotate(${rotation}deg)` }}>
-                        <ul className="wheel-segments">
-                            {wheelSegments}
-                        </ul>
+                    <div className="wheel" style={wheelStyle}>
+                        {options.map((option, index) => (
+                            <div
+                                key={index}
+                                className="wheel-text"
+                                style={{
+                                    transform: `rotate(${segmentDegrees * index + segmentDegrees / 2}deg)`
+                                }}
+                            >
+                                <span>{option}</span>
+                            </div>
+                        ))}
                     </div>
                     <Button 
                         onClick={handleSpin} 
@@ -319,3 +297,5 @@ export default function SpinWheelPage() {
     </>
   );
 }
+
+    
