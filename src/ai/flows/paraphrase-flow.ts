@@ -50,6 +50,8 @@ const paraphrasePrompt = ai.definePrompt({
     1.  **Formal Style**: Rewrite the text using standard, structured language suitable for academic or business contexts. Avoid slang and use a richer vocabulary.
     2.  **Simple Style**: Rewrite the text using straightforward, clear language that is easy for everyone to understand. Use short sentences and get straight to the point.
     3.  **Creative Style**: Rewrite the text in a more imaginative and expressive way. Use metaphors, analogies, or a storytelling style to convey the message in a unique and engaging manner.
+
+    IMPORTANT: You must provide the final output as a valid JSON object that adheres to the defined output schema.
   `,
 });
 
