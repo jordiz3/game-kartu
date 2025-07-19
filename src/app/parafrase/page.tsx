@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Textarea } from '../../components/ui/textarea';
 import { useToast } from '../../hooks/use-toast';
 import { paraphraseParagraph } from './actions';
-import type { ParaphraseOutput } from '../../ai/flows/paraphrase-flow';
+import type { ParaphraseOutput } from './actions';
 
 
 export default function ParafrasePage() {
