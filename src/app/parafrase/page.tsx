@@ -9,15 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Textarea } from '../../components/ui/textarea';
 import { useToast } from '../../hooks/use-toast';
 import { paraphraseParagraph } from './actions';
-import { z } from 'zod';
 
-// Definisikan skema dan tipe di sini, di file klien, karena ini aman.
-const ParaphraseOutputSchema = z.object({
-  formal: z.string(),
-  simple: z.string(),
-  creative: z.string(),
-});
-export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
+// Definisikan tipe output di klien
+type ParaphraseOutput = {
+  model1: string;
+  model2: string;
+  model3: string;
+};
 
 
 export default function ParafrasePage() {
@@ -70,7 +68,7 @@ export default function ParafrasePage() {
       <div className="w-full max-w-4xl mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-800">Alat Parafrase AI (Skripsi)</h1>
-          <p className="text-slate-500 mt-2 text-lg">Tulis ulang paragraf Anda dengan tiga gaya berbeda dalam Bahasa Indonesia.</p>
+          <p className="text-slate-500 mt-2 text-lg">Dapatkan tiga pilihan parafrase dalam gaya formal untuk tugas akhirmu.</p>
         </header>
 
         <Card className="w-full shadow-lg mb-8">
@@ -113,12 +111,12 @@ export default function ParafrasePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Gaya Formal (Ilmiah)</CardTitle>
-                <CardDescription>Lebih terstruktur dan cocok untuk skripsi.</CardDescription>
+                <CardTitle>Model 1</CardTitle>
+                <CardDescription>Pilihan parafrase pertama.</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-700 mb-4 min-h-[100px]">{paraphrasedResults.formal}</p>
-                <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(paraphrasedResults.formal)}>
+                <p className="text-slate-700 mb-4 min-h-[100px]">{paraphrasedResults.model1}</p>
+                <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(paraphrasedResults.model1)}>
                   <Clipboard className="mr-2 h-4 w-4" />
                   Salin
                 </Button>
@@ -127,12 +125,12 @@ export default function ParafrasePage() {
 
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Gaya Sederhana</CardTitle>
-                <CardDescription>Mudah dipahami dan lugas.</CardDescription>
+                <CardTitle>Model 2</CardTitle>
+                <CardDescription>Pilihan parafrase kedua.</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-700 mb-4 min-h-[100px]">{paraphrasedResults.simple}</p>
-                <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(paraphrasedResults.simple)}>
+                <p className="text-slate-700 mb-4 min-h-[100px]">{paraphrasedResults.model2}</p>
+                <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(paraphrasedResults.model2)}>
                   <Clipboard className="mr-2 h-4 w-4" />
                   Salin
                 </Button>
@@ -141,12 +139,12 @@ export default function ParafrasePage() {
 
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Gaya Kreatif</CardTitle>
-                <CardDescription>Lebih ekspresif dan imajinatif.</CardDescription>
+                <CardTitle>Model 3</CardTitle>
+                <CardDescription>Pilihan parafrase ketiga.</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-700 mb-4 min-h-[100px]">{paraphrasedResults.creative}</p>
-                <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(paraphrasedResults.creative)}>
+                <p className="text-slate-700 mb-4 min-h-[100px]">{paraphrasedResults.model3}</p>
+                <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(paraphrasedResults.model3)}>
                   <Clipboard className="mr-2 h-4 w-4" />
                   Salin
                 </Button>
