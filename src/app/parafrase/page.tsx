@@ -69,8 +69,8 @@ export default function ParafrasePage() {
     <div className="bg-slate-50 min-h-screen flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-4xl mx-auto">
         <header className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-800">Alat Parafrase AI</h1>
-          <p className="text-slate-500 mt-2 text-lg">Tulis ulang paragraf Anda dengan tiga gaya berbeda menggunakan Gemini.</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-800">Alat Parafrase AI (Skripsi)</h1>
+          <p className="text-slate-500 mt-2 text-lg">Tulis ulang paragraf Anda dengan tiga gaya berbeda dalam Bahasa Indonesia.</p>
         </header>
 
         <Card className="w-full shadow-lg mb-8">
@@ -113,8 +113,8 @@ export default function ParafrasePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Gaya Formal</CardTitle>
-                <CardDescription>Lebih terstruktur dan profesional.</CardDescription>
+                <CardTitle>Gaya Formal (Ilmiah)</CardTitle>
+                <CardDescription>Lebih terstruktur dan cocok untuk skripsi.</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-slate-700 mb-4 min-h-[100px]">{paraphrasedResults.formal}</p>

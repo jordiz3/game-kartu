@@ -9,16 +9,16 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-// Definisikan skema di sini, tetapi JANGAN diekspor dari file 'use server' ini.
+// Skema Zod didefinisikan di sini untuk digunakan oleh server action, tetapi tidak diekspor.
 const ParaphraseInputSchema = z.object({
-  text: z.string().describe('The original text or paragraph to be paraphrased.'),
+  text: z.string().describe('Teks asli yang akan diparafrase.'),
 });
 type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
 
 const ParaphraseOutputSchema = z.object({
-  formal: z.string().describe('A version of the paragraph rewritten in a formal and professional style.'),
-  simple: z.string().describe('A version of the paragraph rewritten in a simple and easy-to-understand style.'),
-  creative: z.string().describe('A version of the paragraph rewritten in a more creative, imaginative, and expressive style.'),
+  formal: z.string().describe('Sebuah versi paragraf yang ditulis ulang dengan gaya formal dan ilmiah, cocok untuk skripsi.'),
+  simple: z.string().describe('Sebuah versi paragraf yang ditulis ulang dengan gaya yang sederhana dan mudah dipahami.'),
+  creative: z.string().describe('Sebuah versi paragraf yang ditulis ulang dengan gaya yang lebih kreatif, imajinatif, dan ekspresif.'),
 });
 type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
@@ -33,19 +33,19 @@ export async function paraphraseParagraph(input: ParaphraseInput): Promise<Parap
   const { output } = await ai.generate({
     model: 'googleai/gemini-1.5-flash',
     prompt: `
-      You are an expert linguist and professional writer.
-      Your task is to paraphrase the given text into three different styles.
-      Ensure each version has the same meaning as the original text but with different word choices, sentence structures, and nuances.
+      Anda adalah seorang ahli bahasa dan penulis akademik profesional berbahasa Indonesia.
+      Tugas Anda adalah memparafrasekan teks yang diberikan ke dalam tiga gaya berbeda dalam Bahasa Indonesia.
+      Pastikan setiap versi memiliki makna yang sama dengan teks asli tetapi dengan pilihan kata, struktur kalimat, dan nuansa yang berbeda.
 
-      Original Text:
+      Teks Asli:
       "${input.text}"
 
-      Instructions:
-      1.  **Formal Style**: Rewrite the text using standard, structured language suitable for academic or business contexts. Avoid slang and use a richer vocabulary.
-      2.  **Simple Style**: Rewrite the text using straightforward, clear language that is easy for everyone to understand. Use short sentences and get straight to the point.
-      3.  **Creative Style**: Rewrite the text in a more imaginative and expressive way. Use metaphors, analogies, or a storytelling style to convey the message in a unique and engaging manner.
+      Instruksi:
+      1.  **Gaya Formal (Ilmiah)**: Tulis ulang teks menggunakan bahasa baku dan terstruktur yang cocok untuk konteks akademik atau skripsi. Hindari bahasa gaul dan gunakan kosakata yang lebih kaya.
+      2.  **Gaya Sederhana**: Tulis ulang teks menggunakan bahasa yang lugas dan jelas agar mudah dipahami semua orang. Gunakan kalimat pendek dan langsung ke intinya.
+      3.  **Gaya Kreatif**: Tulis ulang teks dengan cara yang lebih imajinatif dan ekspresif. Gunakan metafora, analogi, atau gaya bercerita untuk menyampaikan pesan dengan cara yang unik dan menarik.
 
-      IMPORTANT: You must provide the final output as a valid JSON object that adheres to the defined output schema.
+      PENTING: Anda harus memberikan output akhir sebagai objek JSON yang valid dan mematuhi skema output yang telah ditentukan.
     `,
     output: {
       schema: ParaphraseOutputSchema,
@@ -58,7 +58,7 @@ export async function paraphraseParagraph(input: ParaphraseInput): Promise<Parap
 
 
   if (!output) {
-    throw new Error('AI did not return a valid result. The output was null.');
+    throw new Error('AI tidak mengembalikan hasil yang valid. Output bernilai null.');
   }
 
   return output;
