@@ -5,16 +5,16 @@
  * @fileOverview Server action untuk fitur parafrase.
  * Berisi semua logika untuk berkomunikasi dengan Genkit dan Gemini AI.
  */
-
-import { ai } from '@/ai/genkit';
+import { genkit, type Genkit as GenkitType } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
-// Tipe didefinisikan di sini untuk digunakan oleh server action.
-type ParaphraseInput = {
+// Tipe didefinisikan di sini untuk digunakan oleh server action dan client.
+export type ParaphraseInput = {
   text: string;
 };
 
-type ParaphraseOutput = {
+export type ParaphraseOutput = {
   model1: string;
   model2: string;
   model3: string;
@@ -26,6 +26,34 @@ const ParaphraseOutputSchema = z.object({
   model2: z.string().describe('Versi parafrase kedua yang sedikit berbeda, juga dengan gaya formal khas mahasiswa.'),
   model3: z.string().describe('Versi parafrase ketiga yang unik, juga dengan gaya formal khas mahasiswa.'),
 });
+
+
+let ai: GenkitType;
+
+// Initialize Genkit conditionally to avoid secret access issues during build.
+// Genkit will only be initialized when the app is running in a server environment (runtime).
+if (process.env.NODE_ENV === 'production') {
+  ai = genkit({
+    plugins: [
+      googleAI(),
+    ],
+  });
+} else {
+  // Provide a mock/dummy ai object during build or in non-production environments
+  // to prevent the application from crashing when trying to access `ai`.
+  ai = {
+      generate: async () => { 
+        console.log("AI called in non-production environment. Returning mock data.");
+        return { 
+          output: () => ({
+            model1: "Mocked paraphrase 1.",
+            model2: "Mocked paraphrase 2.",
+            model3: "Mocked paraphrase 3."
+          })
+        };
+      }
+  } as any;
+}
 
 
 /**
