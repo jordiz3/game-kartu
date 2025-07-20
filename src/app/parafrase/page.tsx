@@ -10,7 +10,10 @@ import { Textarea } from '../../components/ui/textarea';
 import { useToast } from '../../hooks/use-toast';
 import { paraphraseParagraph } from './actions';
 
-// Definisikan tipe output di klien
+type ParaphraseInput = {
+  text: string;
+};
+
 type ParaphraseOutput = {
   model1: string;
   model2: string;
@@ -38,7 +41,7 @@ export default function ParafrasePage() {
     setParaphrasedResults(null);
 
     try {
-      const result = await paraphraseParagraph({ text: originalText });
+      const result: ParaphraseOutput = await paraphraseParagraph({ text: originalText });
       if (!result) {
         throw new Error('AI did not return a result.');
       }
