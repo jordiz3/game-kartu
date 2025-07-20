@@ -7,7 +7,7 @@ env:
   - variable: NODE_ENV
     value: "production"
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: "AIzaSyC8UNkIKzaBesTpyGwbz2-BOJk-24qSEB8"
+    value: "AIzaSyC8UNkIKzaBesTpyGwbz-BOJk-24qSEB8"
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
     value: "wishlist-date-app-1440c.firebaseapp.com"
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
@@ -21,5 +21,4 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
     value: "G-QGJ4DRT0CE"
   - secret: GOOGLE_API_KEY
-    availability:
-      - RUNTIME
+
