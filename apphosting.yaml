@@ -21,3 +21,5 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
     value: "G-QGJ4DRT0CE"
   - secret: GOOGLE_API_KEY
+    availability:
+      - RUNTIME
