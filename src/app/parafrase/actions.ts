@@ -9,19 +9,18 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-// Skema input yang divalidasi oleh Zod
-export const ParaphraseInputSchema = z.object({
+// Definisikan skema di sini, tetapi JANGAN diekspor dari file 'use server' ini.
+const ParaphraseInputSchema = z.object({
   text: z.string().describe('The original text or paragraph to be paraphrased.'),
 });
-export type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
+type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
 
-// Skema output yang diharapkan dari AI
-export const ParaphraseOutputSchema = z.object({
+const ParaphraseOutputSchema = z.object({
   formal: z.string().describe('A version of the paragraph rewritten in a formal and professional style.'),
   simple: z.string().describe('A version of the paragraph rewritten in a simple and easy-to-understand style.'),
   creative: z.string().describe('A version of the paragraph rewritten in a more creative, imaginative, and expressive style.'),
 });
-export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
+type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
 
 /**

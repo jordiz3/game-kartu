@@ -9,7 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Textarea } from '../../components/ui/textarea';
 import { useToast } from '../../hooks/use-toast';
 import { paraphraseParagraph } from './actions';
-import type { ParaphraseOutput } from './actions';
+import { z } from 'zod';
+
+// Definisikan skema dan tipe di sini, di file klien, karena ini aman.
+const ParaphraseOutputSchema = z.object({
+  formal: z.string(),
+  simple: z.string(),
+  creative: z.string(),
+});
+export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
 
 export default function ParafrasePage() {
