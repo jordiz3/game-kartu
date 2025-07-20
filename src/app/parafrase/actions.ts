@@ -30,9 +30,6 @@ export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
  * @returns Sebuah promise yang resolve menjadi objek dengan tiga versi parafrase.
  */
 export async function paraphraseParagraph(input: ParaphraseInput): Promise<ParaphraseOutput> {
-  // Validasi input menggunakan Zod.
-  const validatedInput = ParaphraseInputSchema.parse(input);
-
   // Panggil model AI dengan prompt dan skema yang telah ditentukan.
   const { output } = await ai.generate({
     model: 'googleai/gemini-1.5-flash',
@@ -42,7 +39,7 @@ export async function paraphraseParagraph(input: ParaphraseInput): Promise<Parap
       Ensure each version has the same meaning as the original text but with different word choices, sentence structures, and nuances.
 
       Original Text:
-      "${validatedInput.text}"
+      "${input.text}"
 
       Instructions:
       1.  **Formal Style**: Rewrite the text using standard, structured language suitable for academic or business contexts. Avoid slang and use a richer vocabulary.
