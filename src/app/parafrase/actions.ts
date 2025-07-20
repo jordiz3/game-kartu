@@ -2,10 +2,38 @@
 
 /**
  * @fileOverview Server action untuk fitur parafrase.
- * Berisi semua logika untuk berkomunikasi dengan Genkit dan Gemini AI.
+ * Berisi semua logika untuk berkomunikasi dengan Genkit dan Gemini AI,
+ * termasuk definisi schema dan tipe data.
  */
 import {ai} from '@/ai/genkit';
-import {ParaphraseInput, ParaphraseOutput, ParaphraseOutputSchema} from './page';
+import {z} from 'zod';
+
+// Skema Zod untuk input, digunakan untuk validasi.
+export const ParaphraseInputSchema = z.object({
+  text: z.string().min(10, {message: 'Teks harus minimal 10 karakter.'}),
+});
+
+// Tipe didefinisikan di sini untuk digunakan oleh server action dan client.
+export type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
+
+// Skema Zod untuk output, digunakan untuk memastikan AI mengembalikan format yang benar.
+export const ParaphraseOutputSchema = z.object({
+  model1: z
+    .string()
+    .describe('Versi parafrase pertama dengan gaya formal khas mahasiswa.'),
+  model2: z
+    .string()
+    .describe(
+      'Versi parafrase kedua yang sedikit berbeda, juga dengan gaya formal khas mahasiswa.'
+    ),
+  model3: z
+    .string()
+    .describe(
+      'Versi parafrase ketiga yang unik, juga dengan gaya formal khas mahasiswa.'
+    ),
+});
+
+export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
 /**
  * Fungsi utama yang dipanggil oleh client untuk memparafrasekan paragraf.
@@ -33,7 +61,6 @@ export async function paraphraseParagraph(
       schema: ParaphraseOutputSchema,
     },
     config: {
-      // Menggunakan temperatur yang sedikit lebih tinggi untuk hasil yang lebih kreatif.
       temperature: 0.8,
     },
   });

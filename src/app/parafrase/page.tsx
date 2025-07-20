@@ -13,35 +13,7 @@ import {
 } from '../../components/ui/card';
 import {Textarea} from '../../components/ui/textarea';
 import {useToast} from '../../hooks/use-toast';
-import {paraphraseParagraph} from './actions';
-import {z} from 'zod';
-
-// Skema Zod untuk input, digunakan untuk validasi.
-const ParaphraseInputSchema = z.object({
-  text: z.string(),
-});
-
-// Tipe didefinisikan di sini untuk digunakan oleh server action dan client.
-export type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
-
-// Skema Zod untuk output, digunakan untuk memastikan AI mengembalikan format yang benar.
-export const ParaphraseOutputSchema = z.object({
-  model1: z
-    .string()
-    .describe('Versi parafrase pertama dengan gaya formal khas mahasiswa.'),
-  model2: z
-    .string()
-    .describe(
-      'Versi parafrase kedua yang sedikit berbeda, juga dengan gaya formal khas mahasiswa.'
-    ),
-  model3: z
-    .string()
-    .describe(
-      'Versi parafrase ketiga yang unik, juga dengan gaya formal khas mahasiswa.'
-    ),
-});
-
-export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
+import {paraphraseParagraph, type ParaphraseOutput} from './actions';
 
 export default function ParafrasePage() {
   const [originalText, setOriginalText] = useState('');
