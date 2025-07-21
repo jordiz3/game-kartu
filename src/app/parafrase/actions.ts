@@ -24,9 +24,6 @@ export const ParaphraseOutputSchema = z.object({
 
 export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
-// Inisialisasi Google Generative AI
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
-
 /**
  * Fungsi utama yang dipanggil oleh client untuk memparafrasekan paragraf.
  * @param input Objek yang berisi teks untuk diparafrase.
@@ -40,6 +37,14 @@ export async function paraphraseParagraph(
   if (!validationResult.success) {
     throw new Error(validationResult.error.issues[0].message);
   }
+
+  // Menambahkan pemeriksaan untuk API key
+  if (!process.env.GOOGLE_API_KEY) {
+    throw new Error('Kunci API Google tidak dikonfigurasi di server.');
+  }
+
+  // Inisialisasi Google Generative AI
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
