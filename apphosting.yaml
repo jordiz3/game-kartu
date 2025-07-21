@@ -20,6 +20,5 @@ env:
     value: "1:357859974192:web:e6311a2f8fe85068ace1f5"
   - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
     value: "G-QGJ4DRT0CE"
-  - secret: GOOGLE_API_KEY
-    availability:
-      - RUNTIME
+  - variable: GOOGLE_API_KEY
+    secret: GOOGLE_API_KEY
