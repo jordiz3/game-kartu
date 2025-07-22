@@ -10,7 +10,6 @@ import {
   ParaphraseOutput,
   ParaphraseOutputSchema
 } from '../../lib/schemas';
-import { firebaseConfig } from '../../lib/firebaseConfig';
 
 
 /**
@@ -27,8 +26,8 @@ export async function paraphraseParagraph(
     throw new Error(validationResult.error.issues[0].message);
   }
 
-  // Mengambil API key langsung dari konfigurasi
-  const apiKey = firebaseConfig.apiKey;
+  // Mengambil API key dari environment variables.
+  const apiKey = process.env.GOOGLE_API_KEY;
 
   // Menambahkan pemeriksaan untuk API key
   if (!apiKey) {
