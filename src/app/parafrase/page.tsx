@@ -13,8 +13,9 @@ import {
 } from '../../components/ui/card';
 import {Textarea} from '../../components/ui/textarea';
 import {useToast} from '../../hooks/use-toast';
-import { paraphraseParagraph } from './actions';
-import { type ParaphraseOutput } from '../../lib/schemas';
+import { type ParaphraseOutput, ParaphraseOutputSchema } from '../../lib/schemas';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { firebaseConfig } from '../../lib/firebaseConfig';
 
 export default function ParafrasePage() {
   const [originalText, setOriginalText] = useState('');
@@ -36,21 +37,61 @@ export default function ParafrasePage() {
     setIsLoading(true);
     setParaphrasedResults(null);
 
-    try {
-      const result: ParaphraseOutput = await paraphraseParagraph({
-        text: originalText,
+    // WARNING: This is NOT a secure practice for production.
+    // The API key is exposed on the client side.
+    // This is for debugging purposes in this specific environment only.
+    // The production environment uses secrets from apphosting.yaml.
+    const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+
+    if (!apiKey) {
+      toast({
+        variant: 'destructive',
+        title: 'Gagal Membuat Parafrase',
+        description: 'Kunci API tidak ditemukan di konfigurasi klien.',
       });
-      if (!result) {
-        throw new Error('AI did not return a result.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+      const prompt = `
+        Anda adalah seorang ahli bahasa Indonesia yang sangat pandai membantu mahasiswa mengerjakan skripsi.
+        Tugas Anda adalah memparafrasekan teks yang diberikan ke dalam gaya bahasa formal, namun tidak terlalu kaku atau ilmiah. Gunakan gaya bahasa yang umum dipakai mahasiswa dalam penulisan tugas akhir: terstruktur, baku, tetapi tetap mudah dibaca.
+
+        Teks Asli:
+        "${originalText}"
+
+        Instruksi:
+        Buatlah TIGA model atau versi parafrase yang berbeda dari teks asli tersebut. Setiap model harus memiliki pilihan kata dan struktur kalimat yang sedikit berbeda satu sama lain, namun tetap mempertahankan makna asli dan gaya formal khas mahasiswa.
+
+        PENTING: Berikan output HANYA sebagai objek JSON yang valid dengan kunci "model1", "model2", dan "model3". Jangan tambahkan markdown atau teks lain di luar JSON. Contoh: {"model1": "...", "model2": "...", "model3": "..."}
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsedJson = JSON.parse(cleanedText);
+      
+      const validationOutput = ParaphraseOutputSchema.safeParse(parsedJson);
+
+      if (!validationOutput.success) {
+        throw new Error('AI memberikan respons dalam format yang tidak diharapkan.');
       }
-      setParaphrasedResults(result);
+
+      setParaphrasedResults(validationOutput.data);
+
     } catch (error) {
       console.error('Paraphrasing error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui.';
       toast({
         variant: 'destructive',
         title: 'Gagal Membuat Parafrase',
-        description: errorMessage,
+        description: `Gagal menghubungi AI. Mungkin ada masalah dengan jaringan atau layanan AI sedang sibuk. Error: ${errorMessage}`,
       });
     } finally {
       setIsLoading(false);
