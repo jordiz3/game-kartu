@@ -13,7 +13,8 @@ import {
 } from '../../components/ui/card';
 import {Textarea} from '../../components/ui/textarea';
 import {useToast} from '../../hooks/use-toast';
-import {paraphraseParagraph, type ParaphraseOutput} from './actions';
+import {paraphraseParagraph} from './actions';
+import { type ParaphraseOutput } from '../../lib/schemas';
 
 export default function ParafrasePage() {
   const [originalText, setOriginalText] = useState('');
