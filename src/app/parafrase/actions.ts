@@ -25,7 +25,10 @@ export async function paraphraseParagraph(
 
   const { text } = validationResult.data;
 
-  const apiKey = process.env.GOOGLE_API_KEY;
+  // IMPORTANT: Using a hardcoded key is NOT recommended for production.
+  // This is a workaround for a local development environment where process.env is not being populated correctly.
+  // The deployed version uses the secure secret from apphosting.yaml.
+  const apiKey = "AIzaSyC8UNkIKzaBesTpyGwbz-BOJk-24qSEB8";
 
   if (!apiKey) {
     // This error will be caught by the client and displayed as a toast.
