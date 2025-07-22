@@ -13,8 +13,8 @@ import {
 } from '../../components/ui/card';
 import {Textarea} from '../../components/ui/textarea';
 import {useToast} from '../../hooks/use-toast';
-import { type ParaphraseOutput } from '../../lib/schemas';
-import { paraphraseParagraph } from './actions';
+import { type ParaphraseOutput } from '../../ai/flows/paraphrase-flow';
+import { paraphrase } from '../../ai/flows/paraphrase-flow';
 
 export default function ParafrasePage() {
   const [originalText, setOriginalText] = useState('');
@@ -37,7 +37,7 @@ export default function ParafrasePage() {
     setParaphrasedResults(null);
 
     try {
-      const result = await paraphraseParagraph({ text: originalText });
+      const result = await paraphrase({ text: originalText });
       setParaphrasedResults(result);
     } catch (error) {
       console.error('Paraphrasing error:', error);
@@ -137,7 +137,7 @@ export default function ParafrasePage() {
               <CardHeader>
                 <CardTitle>Model 2</CardTitle>
                 <CardDescription>Pilihan parafrase kedua.</CardDescription>
-              </CardHeader>
+              </Header>
               <CardContent>
                 <p className="text-slate-700 mb-4 min-h-[100px]">
                   {paraphrasedResults.model2}
@@ -157,7 +157,7 @@ export default function ParafrasePage() {
               <CardHeader>
                 <CardTitle>Model 3</CardTitle>
                 <CardDescription>Pilihan parafrase ketiga.</CardDescription>
-              </CardHeader>
+              </Header>
               <CardContent>
                 <p className="text-slate-700 mb-4 min-h-[100px]">
                   {paraphrasedResults.model3}
