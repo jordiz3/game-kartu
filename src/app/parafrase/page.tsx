@@ -13,7 +13,7 @@ import {
 } from '../../components/ui/card';
 import {Textarea} from '../../components/ui/textarea';
 import {useToast} from '../../hooks/use-toast';
-import {paraphraseParagraph} from './actions';
+import { paraphraseParagraph } from './actions';
 import { type ParaphraseOutput } from '../../lib/schemas';
 
 export default function ParafrasePage() {
@@ -46,10 +46,11 @@ export default function ParafrasePage() {
       setParaphrasedResults(result);
     } catch (error) {
       console.error('Paraphrasing error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui.';
       toast({
         variant: 'destructive',
         title: 'Gagal Membuat Parafrase',
-        description: 'Terjadi kesalahan saat menghubungi AI. Coba lagi nanti.',
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
