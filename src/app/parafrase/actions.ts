@@ -10,6 +10,7 @@ import {
   ParaphraseOutput,
   ParaphraseOutputSchema
 } from '../../lib/schemas';
+import { firebaseConfig } from '../../lib/firebaseConfig';
 
 
 /**
@@ -26,13 +27,16 @@ export async function paraphraseParagraph(
     throw new Error(validationResult.error.issues[0].message);
   }
 
+  // Mengambil API key langsung dari konfigurasi
+  const apiKey = firebaseConfig.apiKey;
+
   // Menambahkan pemeriksaan untuk API key
-  if (!process.env.GOOGLE_API_KEY) {
+  if (!apiKey) {
     throw new Error('Kunci API Google tidak dikonfigurasi di server.');
   }
 
   // Inisialisasi Google Generative AI
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+  const genAI = new GoogleGenerativeAI(apiKey);
 
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
