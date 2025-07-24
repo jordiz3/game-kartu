@@ -14,8 +14,14 @@ import {
 } from '../../components/ui/card';
 import {Textarea} from '../../components/ui/textarea';
 import {useToast} from '../../hooks/use-toast';
-import { type ParaphraseOutput } from '../../ai/flows/paraphrase-flow';
 import { paraphrase } from '../../ai/flows/paraphrase-flow';
+
+// We define the type here since it's no longer exported from the flow.
+type ParaphraseOutput = {
+  model1: string;
+  model2: string;
+  model3: string;
+};
 
 export default function ParafrasePage() {
   const [originalText, setOriginalText] = useState('');

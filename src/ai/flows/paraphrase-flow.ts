@@ -14,14 +14,14 @@ import {z} from 'genkit';
 const ParaphraseInputSchema = z.object({
   text: z.string().min(10, { message: 'Teks harus minimal 10 karakter.' }),
 });
-export type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
+type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
 
 const ParaphraseOutputSchema = z.object({
   model1: z.string().describe('The first paraphrased version.'),
   model2: z.string().describe('The second paraphrased version.'),
   model3: z.string().describe('The third paraphrased version.'),
 });
-export type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
+type ParaphraseOutput = z.infer<typeof ParaphraseOutputSchema>;
 
 export async function paraphrase(input: ParaphraseInput): Promise<ParaphraseOutput> {
   return paraphraseFlow(input);
