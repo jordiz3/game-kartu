@@ -137,7 +137,7 @@ export default function ParafrasePage() {
               <CardHeader>
                 <CardTitle>Model 2</CardTitle>
                 <CardDescription>Pilihan parafrase kedua.</CardDescription>
-              </Header>
+              </CardHeader>
               <CardContent>
                 <p className="text-slate-700 mb-4 min-h-[100px]">
                   {paraphrasedResults.model2}
@@ -157,7 +157,7 @@ export default function ParafrasePage() {
               <CardHeader>
                 <CardTitle>Model 3</CardTitle>
                 <CardDescription>Pilihan parafrase ketiga.</CardDescription>
-              </Header>
+              </CardHeader>
               <CardContent>
                 <p className="text-slate-700 mb-4 min-h-[100px]">
                   {paraphrasedResults.model3}
@@ -201,5 +201,7 @@ export default function ParafrasePage() {
         }
       `}</style>
     </div>
+  );
+}
   );
 }
