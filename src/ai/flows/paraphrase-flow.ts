@@ -11,12 +11,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const ParaphraseInputSchema = z.object({
+const ParaphraseInputSchema = z.object({
   text: z.string().min(10, { message: 'Teks harus minimal 10 karakter.' }),
 });
 export type ParaphraseInput = z.infer<typeof ParaphraseInputSchema>;
 
-export const ParaphraseOutputSchema = z.object({
+const ParaphraseOutputSchema = z.object({
   model1: z.string().describe('The first paraphrased version.'),
   model2: z.string().describe('The second paraphrased version.'),
   model3: z.string().describe('The third paraphrased version.'),
